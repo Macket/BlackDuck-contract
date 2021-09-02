@@ -1,0 +1,22 @@
+{
+  "name": "blackduck-contract",
+  "version": "1.0.0",
+  "description": "NFT-game for Waves Ducks",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Macket",
+  "license": "ISC",
+  "dependencies": {
+    "@types/chai": "^4.2.21",
+    "@types/mocha": "^9.0.0",
+    "@waves/waves-transactions": "*",
+    "chai": "^4.3.4",
+    "dotenv": "^10.0.0",
+    "mocha": "^9.0.3"
+  }
+}

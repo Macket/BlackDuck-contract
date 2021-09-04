@@ -25,8 +25,6 @@ let breederAddress = base58'3N285kYUMxPi6oZsdWrxhSY34dJHyu4kRN5' # <-- change
 
 let eggsAssetId = base58'3VUCuh9dWqe54SdzzNUkXhFXpc8UQynnJVh42B7MjNzN' # <-- change
 
-let makerFee = 1 # 0.01 EGG
-let takerFee = 1 # 0.01 EGG
 let SLOTS = 10
 let WAITING = 8
 let stepDuration = 5
@@ -59,7 +57,7 @@ func getNextGameId() = {
 }
 
 func getPlayerCurrentGameKey(playerAddress: String) = {
-    "currentGame_" + playerAddress
+    playerAddress + "_currentGame"
 }
 
 func getPlayerCurrentGame(playerAddress: String) = {
@@ -178,9 +176,42 @@ func getPrizeSent(gameId: Int, playerRole: String) = {
     tryGetBoolean(getPrizeSentKey(gameId, playerRole))
 }
 
-func getScore(a: Int, b: Int) = {
-    if (a > b) then 1 else if (a < b) then -1 else 0
+# --- STATS ---
+
+func getPlayerWinsKey(playerAddress: String) = {
+    playerAddress + "_wins"
 }
+
+func getPlayerWins(playerAddress: String) = {
+    tryGetInteger(getPlayerWinsKey(playerAddress))
+}
+
+func getPlayerLosesKey(playerAddress: String) = {
+    playerAddress + "_loses"
+}
+
+func getPlayerLoses(playerAddress: String) = {
+    tryGetInteger(getPlayerLosesKey(playerAddress))
+}
+
+func getPlayerDrawsKey(playerAddress: String) = {
+    playerAddress + "_draws"
+}
+
+func getPlayerDraws(playerAddress: String) = {
+    tryGetInteger(getPlayerDrawsKey(playerAddress))
+}
+
+func getGamesPlayedKey() = {
+    "gamesPlayed"
+}
+
+func getGamesPlayed() = {
+    tryGetInteger(getGamesPlayedKey())
+}
+
+# -----------------------------
+
 
 # --- DUCKS FARMING METHODS ---
 
@@ -225,6 +256,10 @@ func getAssetRarity(assetId: ByteVector) = {
 
 # -----------------------------
 
+func getScore(a: Int, b: Int) = {
+    if (a > b) then 1 else if (a < b) then -1 else 0
+}
+
 func getWinner(gameId: Int) = {
   let gameStep = getStep(gameId)
 
@@ -256,14 +291,14 @@ func makeGame(slot: Int, rarityRangeWorst: Int, rarityRangeMedium: Int, rarityRa
   let callerAddress = toBase58String(i.caller.bytes)
   let slotGameId = getSlot(slot)
   let payment = i.payments[0].value()
-  let eggs = payment.amount - makerFee
+  let eggs = payment.amount
   let gameId = getNextGameId()
 
   if (getPlayerCurrentGame(callerAddress) != 0) then throw("You already have an active game")
   else if (slot < 0 || slot >= SLOTS) then throw("Invalid slot")
   else if (slotGameId != 0) then throw("This slot is busy")
   else if (payment.assetId != eggsAssetId) then throw("You can attach only EGGs with the following asset id: " + eggsAssetId.toBase58String())
-  else if (eggs <= 0) then throw("Not enough EGGs")
+  else if (eggs != 1) then throw("Bet must be 0.01 EGG during beta test")
   else if (rarityRangeWorst < 1 || rarityRangeWorst > 5) then throw("Invalid rarity range for the worst duck")
   else if (rarityRangeMedium < 1 || rarityRangeMedium > 5) then throw("Invalid rarity range for the medium duck")
   else if (rarityRangeBest < 1 || rarityRangeBest > 5) then throw("Invalid rarity range for the best duck")
@@ -295,7 +330,7 @@ func takeGame(slot: Int) = {
     else if (slot < 0 || slot >= SLOTS) then throw("Invalid slot")
     else if (getSlot(slot) == 0) then throw("This slot is empty")
     else if (payment.assetId != eggsAssetId) then throw("You can attach only EGG tokens with the following asset id: " + eggsAssetId.toBase58String())
-    else if (payment.amount != getBetEggs(gameId) + takerFee) then throw("Insufficient eggs amount")
+    else if (payment.amount != getBetEggs(gameId)) then throw("Insufficient eggs amount")
     else if (getWaitingExpirationHeight(gameId) <= height) then throw("This game is expired")
     else {
         [
@@ -304,7 +339,8 @@ func takeGame(slot: Int) = {
             StringEntry(getPlayerRoleKey(gameId, callerAddress), "taker"),
             IntegerEntry(getStepKey(gameId), 0),
             IntegerEntry(getExpirationHeightKey(gameId), height + stepDuration),
-            IntegerEntry(getSlotKey(slot), 0)
+            IntegerEntry(getSlotKey(slot), 0),
+            IntegerEntry("gamesPlayed", getGamesPlayed() + 1)
         ]
     }
 }
@@ -321,7 +357,7 @@ func kickGame(slot: Int) = {
         [
             IntegerEntry(getPlayerCurrentGameKey(maker), 0),
             IntegerEntry(getSlotKey(slot), 0),
-            ScriptTransfer(Address(maker.fromBase58String()), getBetEggs(gameId) + makerFee, eggsAssetId)
+            ScriptTransfer(Address(maker.fromBase58String()), getBetEggs(gameId), eggsAssetId)
         ]
     }
 }
@@ -427,21 +463,23 @@ func getPrize() = {
     else if (getPrizeSent(gameId, playerRole)) then throw("You have already got the prize")
     else if (winner == playerRole) then {
       [
-          IntegerEntry(getPlayerCurrentGameKey(makerAddress), 0),
-          IntegerEntry(getPlayerCurrentGameKey(takerAddress), 0),
+          IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0),
           BooleanEntry(getPrizeSentKey(gameId, playerRole), true),
+          IntegerEntry(getPlayerWinsKey(callerAddress), getPlayerWins(callerAddress) + 1),
           ScriptTransfer(i.caller, getBetEggs(gameId) * 2, eggsAssetId)
       ]
     } else if (winner == "draw") then {
       [
           IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0),
           BooleanEntry(getPrizeSentKey(gameId, playerRole), true),
+          IntegerEntry(getPlayerDrawsKey(callerAddress), getPlayerDraws(callerAddress) + 1),
           ScriptTransfer(i.caller, getBetEggs(gameId), eggsAssetId)
       ]
     } else {
         [
           IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0),
-          BooleanEntry(getPrizeSentKey(gameId, playerRole), true),
+          IntegerEntry(getPlayerLosesKey(callerAddress), getPlayerLoses(callerAddress) + 1),
+          BooleanEntry(getPrizeSentKey(gameId, playerRole), true)
       ]
     }
 }

@@ -23,7 +23,7 @@ export const getNextGameId = async (): Promise<number> => {
 }
 
 export const getPlayerCurrentGame = async (playerAddress: string): Promise<number> => {
-    return (await getData('currentGame_' + playerAddress))[0].value as number;
+    return (await getData(playerAddress + "_currentGame"))[0].value as number;
 }
 
 export const getSlot = async (slot: number): Promise<number> => {
@@ -77,7 +77,6 @@ export const getDuckOrder = async (gameId: number, playerRole: 'maker' | 'taker'
 export const getPrizeSent = async (gameId: number, playerRole: 'maker' | 'taker'): Promise<boolean> => {
     return (await getData('game' + gameId.toString() + "_" + playerRole + "_prizeSent"))[0].value as boolean;
 }
-
 
 export const getPlayerWins = async (playerAddress: string): Promise<number> => {
     try {

@@ -77,3 +77,36 @@ export const getDuckOrder = async (gameId: number, playerRole: 'maker' | 'taker'
 export const getPrizeSent = async (gameId: number, playerRole: 'maker' | 'taker'): Promise<boolean> => {
     return (await getData('game' + gameId.toString() + "_" + playerRole + "_prizeSent"))[0].value as boolean;
 }
+
+
+export const getPlayerWins = async (playerAddress: string): Promise<number> => {
+    try {
+        return (await getData(playerAddress + '_wins'))[0].value as number;
+    } catch (err) {
+        return 0
+    }
+}
+
+export const getPlayerLoses = async (playerAddress: string): Promise<number> => {
+    try {
+        return (await getData(playerAddress + '_loses'))[0].value as number;
+    } catch (err) {
+        return 0
+    }
+}
+
+export const getPlayerDraws = async (playerAddress: string): Promise<number> => {
+    try {
+        return (await getData(playerAddress + '_draws'))[0].value as number;
+    } catch (err) {
+        return 0
+    }
+}
+
+export const getGamesPlayed = async (): Promise<number> => {
+    try {
+        return (await getData("gamesPlayed"))[0].value as number;
+    } catch (err) {
+        return 0
+    }
+}

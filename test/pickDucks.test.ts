@@ -21,6 +21,14 @@ import {
 describe('Pick Ducks', function() {
     this.timeout(120000);
 
+    it("Impostor can't pick", async function () {
+        try {
+            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, MAKER_BEST_DUCK), IMPOSTOR_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
+        }
+    });
+
     it("Maker can't pick before taker", async function () {
         try {
             await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, MAKER_BEST_DUCK), MAKER_SEED));

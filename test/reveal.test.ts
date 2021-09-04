@@ -18,7 +18,7 @@ import {
     TAKER_SALT,
     STEP_DURATION,
 } from "../src/settings";
-import { generateCommit } from '../src/sdk/utils';
+
 
 describe('Reveal', function() {
     this.timeout(120000);
@@ -31,7 +31,7 @@ describe('Reveal', function() {
         }
     });
 
-    it("Impostor can't commit", async function () {
+    it("Impostor can't reveal", async function () {
         try {
             await broadcastTx(invokeScript(revealTx('worst,medium,best', MAKER_SALT), IMPOSTOR_SEED));
         } catch (err) {
@@ -101,7 +101,7 @@ describe('Reveal', function() {
         assert.equal(expirationHeight, height + STEP_DURATION);
     });
 
-    it("Maker can't commit again", async function () {
+    it("Maker can't reveal again", async function () {
         try {
             await broadcastTx(invokeScript(revealTx('worst,medium,best', MAKER_SALT), MAKER_SEED));
         } catch (err) {

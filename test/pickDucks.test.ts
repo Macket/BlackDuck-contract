@@ -16,6 +16,9 @@ import {
     TAKER_WORST_DUCK,
     TAKER_MEDIUM_DUCK,
     TAKER_BEST_DUCK,
+    IMPOSTOR_WORST_DUCK,
+    IMPOSTOR_MEDIUM_DUCK,
+    IMPOSTOR_BEST_DUCK,
 } from "../src/settings";
 
 describe('Pick Ducks', function() {
@@ -23,7 +26,7 @@ describe('Pick Ducks', function() {
 
     it("Impostor can't pick", async function () {
         try {
-            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, MAKER_BEST_DUCK), IMPOSTOR_SEED));
+            await broadcastTx(invokeScript(pickDucksTx(IMPOSTOR_WORST_DUCK, IMPOSTOR_MEDIUM_DUCK, IMPOSTOR_BEST_DUCK), IMPOSTOR_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
         }

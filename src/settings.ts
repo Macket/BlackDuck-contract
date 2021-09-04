@@ -10,6 +10,10 @@ export const TAKER_WORST_DUCK = "2cpVcSMygKsVfoq6xw7WvByYZF7eSK1y8sJcpJrm5e4a"
 export const TAKER_MEDIUM_DUCK = "3ToP4Yn6R8K6sG25vvreKFYq2u7ubqZUqiWzgK2hFjgM"
 export const TAKER_BEST_DUCK = "7TckPpGLjcHJ53XVXJ4kXC7aS9vZRhAMSgCtrDGD3K2C"
 
+export const IMPOSTOR_WORST_DUCK = "2cpju1quwrrWZnbKnfbhDCib3rHZeEv4Kuw9rovaig4e"
+export const IMPOSTOR_MEDIUM_DUCK = "DkaR26dUbbi6B38oS93MmpiNmjTDCYXiJZooY2oV1HV1"
+export const IMPOSTOR_BEST_DUCK = "4TprF5GgPtNtLPMTe1qjuPYtwd6EVYkCqpeQsqkYFp9L"
+
 export const MAKER_SALT = "dff8b213b4fb"
 export const TAKER_SALT = "3441badf6795"
 

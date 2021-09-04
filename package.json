@@ -16,7 +16,6 @@
     "@types/mocha": "^9.0.0",
     "@waves/waves-transactions": "*",
     "chai": "^4.3.4",
-    "dotenv": "^10.0.0",
     "mocha": "^9.0.3"
   }
 }

@@ -1,27 +1,24 @@
-require('dotenv').config();
+export const MAKER_SEED = ""
+export const TAKER_SEED = ""
+export const IMPOSTOR_SEED = ""
 
-export const MAKER_SEED = process.env.MAKER_SEED;
-export const TAKER_SEED = process.env.TAKER_SEED;
-export const IMPOSTOR_SEED = process.env.IMPOSTOR_SEED;
+export const MAKER_WORST_DUCK = "2b85F6Lm7CuReUdR7XEhMYLJ8YLujiZXXSvsFRoD8X7Y"
+export const MAKER_MEDIUM_DUCK = "79ii5gyBYuSgW9Agqu7jgU9XBcbJTq63DZL3NXK5Bywt"
+export const MAKER_BEST_DUCK = "9cohHvTdYnDd1nNNkhKkNmwkdJ8QxfYUAZ5QJxLV7LVQ"
 
-export const MAKER_WORST_DUCK = process.env.MAKER_WORST_DUCK;
-export const MAKER_MEDIUM_DUCK = process.env.MAKER_MEDIUM_DUCK;
-export const MAKER_BEST_DUCK = process.env.MAKER_BEST_DUCK;
+export const TAKER_WORST_DUCK = "2cpVcSMygKsVfoq6xw7WvByYZF7eSK1y8sJcpJrm5e4a"
+export const TAKER_MEDIUM_DUCK = "3ToP4Yn6R8K6sG25vvreKFYq2u7ubqZUqiWzgK2hFjgM"
+export const TAKER_BEST_DUCK = "7TckPpGLjcHJ53XVXJ4kXC7aS9vZRhAMSgCtrDGD3K2C"
 
-export const TAKER_WORST_DUCK = process.env.TAKER_WORST_DUCK;
-export const TAKER_MEDIUM_DUCK = process.env.TAKER_MEDIUM_DUCK;
-export const TAKER_BEST_DUCK = process.env.TAKER_BEST_DUCK;
+export const MAKER_SALT = "dff8b213b4fb"
+export const TAKER_SALT = "3441badf6795"
 
-// Math.random().toString(16).substr(2, 12)
-export const MAKER_SALT = process.env.MAKER_SALT;
-export const TAKER_SALT = process.env.TAKER_SALT;
+export const INCUBATOR_ADDRESS = "3MtBigTsaeevrcJAEwVcr4quwkqcrtnjoAh"
+export const FARMING_ADDRESS = "3NBznG19rEYUAcnukTRTtwJHBVKQLbobVdC"
+export const GAME_ADDRESS = "3N6oaapvYkEryHUr4vAiPRXM3iS6kMYXito"
 
-export const INCUBATOR_ADDRESS = process.env.INCUBATOR_ADDRESS;
-export const FARMING_ADDRESS = process.env.FARMING_ADDRESS;
-export const GAME_ADDRESS = process.env.GAME_ADDRESS;
+export const EGG_ID = "3VUCuh9dWqe54SdzzNUkXhFXpc8UQynnJVh42B7MjNzN"
+export const WAITING = 8
+export const STEP_DURATION = 5
 
-export const EGG_ID = process.env.EGG_ID;
-export const WAITING = process.env.WAITING;
-export const STEP_DURATION = process.env.STEP_DURATION;
-
-export const CHAIN_ID = process.env.CHAIN_ID;
+export const CHAIN_ID = "T"

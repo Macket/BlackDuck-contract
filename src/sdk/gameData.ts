@@ -74,9 +74,6 @@ export const getDuckOrder = async (gameId: number, playerRole: 'maker' | 'taker'
     return (await getData('game' + gameId.toString() + "_" + playerRole + "_duckOrder"))[0].value as string;
 }
 
-export const getPrizeSent = async (gameId: number, playerRole: 'maker' | 'taker'): Promise<boolean> => {
-    return (await getData('game' + gameId.toString() + "_" + playerRole + "_prizeSent"))[0].value as boolean;
-}
 
 export const getPlayerWins = async (playerAddress: string): Promise<number> => {
     try {

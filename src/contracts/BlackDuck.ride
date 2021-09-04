@@ -168,14 +168,6 @@ func getDuckOrder(gameId: Int, playerRole: String) = {
     tryGetString(getDuckOrderKey(gameId, playerRole))
 }
 
-func getPrizeSentKey(gameId: Int, playerRole: String) = {
-    "game" + toString(gameId) + "_" + playerRole + "_prizeSent"
-}
-
-func getPrizeSent(gameId: Int, playerRole: String) = {
-    tryGetBoolean(getPrizeSentKey(gameId, playerRole))
-}
-
 # --- STATS ---
 
 func getPlayerWinsKey(playerAddress: String) = {
@@ -455,31 +447,27 @@ func getPrize() = {
     let callerAddress = toBase58String(i.caller.bytes)
     let gameId = getPlayerCurrentGame(callerAddress)
     let playerRole = getPlayerRole(gameId, callerAddress)
-    let makerAddress = getMaker(gameId)
-    let takerAddress = getTaker(gameId)
+    let anotherPlayerAddress = if playerRole == "maker" then getTaker(gameId) else getMaker(gameId)
     let winner = getWinner(gameId)
 
     if (gameId == 0) then throw("You don't have an active game")
-    else if (getPrizeSent(gameId, playerRole)) then throw("You have already got the prize")
     else if (winner == playerRole) then {
       [
           IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0),
-          BooleanEntry(getPrizeSentKey(gameId, playerRole), true),
+          IntegerEntry(getPlayerCurrentGameKey(anotherPlayerAddress), 0),
           IntegerEntry(getPlayerWinsKey(callerAddress), getPlayerWins(callerAddress) + 1),
+          IntegerEntry(getPlayerLosesKey(anotherPlayerAddress), getPlayerLoses(anotherPlayerAddress) + 1),
           ScriptTransfer(i.caller, getBetEggs(gameId) * 2, eggsAssetId)
       ]
     } else if (winner == "draw") then {
       [
           IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0),
-          BooleanEntry(getPrizeSentKey(gameId, playerRole), true),
           IntegerEntry(getPlayerDrawsKey(callerAddress), getPlayerDraws(callerAddress) + 1),
           ScriptTransfer(i.caller, getBetEggs(gameId), eggsAssetId)
       ]
     } else {
         [
-          IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0),
-          IntegerEntry(getPlayerLosesKey(callerAddress), getPlayerLoses(callerAddress) + 1),
-          BooleanEntry(getPrizeSentKey(gameId, playerRole), true)
+          IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0)
       ]
     }
 }

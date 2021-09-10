@@ -18,6 +18,7 @@ import { MAKER_SEED, IMPOSTOR_SEED, WAITING } from "../src/settings";
 
 describe('Make Game', function() {
     this.timeout(120000);
+    const EGGs = 1;
 
     it('Invalid slot revert', async function () {
         try {
@@ -59,19 +60,19 @@ describe('Make Game', function() {
         }
     });
 
-    it('Medium <= worst revert', async function () {
+    it('Medium < worst revert', async function () {
         try {
-            await broadcastTx(invokeScript(makeGameTx( 0, 1, 1, 3, 1), MAKER_SEED));
+            await broadcastTx(invokeScript(makeGameTx( 0, 2, 1, 3, EGGs), MAKER_SEED));
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], 'The medium duck must be better than the worst one')
+            assert.strictEqual(err.message.split(': ')[1], "The medium range can't be less than the worst one")
         }
     });
 
-    it('Best <= medium revert', async function () {
+    it('Best < medium revert', async function () {
         try {
-            await broadcastTx(invokeScript(makeGameTx( 0, 1, 2, 1, 1), MAKER_SEED));
+            await broadcastTx(invokeScript(makeGameTx( 0, 2, 2, 1, EGGs), MAKER_SEED));
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], 'The best duck must be better than the medium one')
+            assert.strictEqual(err.message.split(': ')[1], "The best range can't be worse than the medium one")
         }
     });
 

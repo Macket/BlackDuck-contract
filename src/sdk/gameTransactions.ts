@@ -55,45 +55,30 @@ export const takeGameTx = (slot: number, eggs: number): IInvokeScriptParams => (
     chainId: CHAIN_ID,
 });
 
-export const pickDucksTx = (worstDuckId: string, mediumDuckID: string, bestDuckID: string): IInvokeScriptParams => ({
+export const pickDucksTx = (worstDuckId: string, mediumDuckId: string, bestDuckId: string): IInvokeScriptParams => ({
     dApp: GAME_ADDRESS,
     fee: 500000,
     call: {
         function: "pickDucks",
+        args: [
+            { type: "string", value: worstDuckId },
+            { type: "string", value: mediumDuckId },
+            { type: "string", value: bestDuckId },
+        ]
     },
-    payment: [
-        {
-            assetId: worstDuckId,
-            amount: 1,
-        },
-        {
-            assetId: mediumDuckID,
-            amount: 1,
-        },
-        {
-            assetId: bestDuckID,
-            amount: 1,
-        },
-    ],
     chainId: CHAIN_ID,
 });
 
-export const wrongPickDucksTx = (worstDuckId: string, mediumDuckID: string): IInvokeScriptParams => ({
+export const wrongPickDucksTx = (worstDuckId: string, mediumDuckId: string): IInvokeScriptParams => ({
     dApp: GAME_ADDRESS,
     fee: 500000,
     call: {
         function: "pickDucks",
+        args: [
+            { type: "string", value: worstDuckId },
+            { type: "string", value: mediumDuckId },
+        ]
     },
-    payment: [
-        {
-            assetId: worstDuckId,
-            amount: 1,
-        },
-        {
-            assetId: mediumDuckID,
-            amount: 1,
-        },
-    ],
     chainId: CHAIN_ID,
 });
 

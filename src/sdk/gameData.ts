@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GAME_ADDRESS, EGG_ID } from "../settings";
+import { GAME_ADDRESS, FARMING_ADDRESS, EGG_ID } from "../settings";
 
 
 export const getEggBalance = async (address: string): Promise<number> => {
@@ -21,6 +21,26 @@ export const getNextGameId = async (): Promise<number> => {
     const gameIdData = await getData('nextGameId');
     return gameIdData.length > 0 ? gameIdData[0].value as number : 1
 }
+
+type Duck = {assetId: string, genes: string, rarity: number};
+type Ducks = { 1: Duck[], 2: Duck[], 3: Duck[], 4: Duck[], 5: Duck[] };
+
+export const getFarmingDucks = async (address: string): Promise<Ducks> => {
+    const res = await axios.get(`https://nodes-testnet.wavesnodes.com/addresses/data/${FARMING_ADDRESS}?matches=address_${address}_.*_farmingPower`);
+    const farmingDucks = res.data.filter(d => d.value > 0);
+
+    const ducks = {1: [], 2: [], 3: [], 4: [], 5: []};
+    for (let farmingDuck of farmingDucks) {
+        const assetId = farmingDuck.key.split("_")[3];
+        const genes = (await axios.get(`https://nodes-testnet.wavesnodes.com/assets/details/${assetId}`)).data.name;
+        const rarity = farmingDuck.value;
+        ducks[Math.min(5, Math.ceil(rarity / 10))].push({assetId, genes, rarity})
+    }
+
+    console.log(ducks);
+
+    return ducks
+};
 
 export const getPlayerCurrentGame = async (playerAddress: string): Promise<number> => {
     return (await getData(playerAddress + "_currentGame"))[0].value as number;
@@ -74,6 +94,13 @@ export const getDuckOrder = async (gameId: number, playerRole: 'maker' | 'taker'
     return (await getData('game' + gameId.toString() + "_" + playerRole + "_duckOrder"))[0].value as string;
 }
 
+export const getGameResult = async (gameId: number, playerAddress: string): Promise<string> => {
+    return (await getData('game' + gameId.toString() + "_" + playerAddress + "_result"))[0].value as string;
+}
+
+export const getGamePrize = async (gameId: number, playerAddress: string): Promise<number> => {
+    return (await getData('game' + gameId.toString() + "_" + playerAddress + "_prize"))[0].value as number;
+}
 
 export const getPlayerWins = async (playerAddress: string): Promise<number> => {
     try {

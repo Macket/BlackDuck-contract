@@ -7,7 +7,8 @@ import {
     getPlayerCurrentGame,
     getBetEggs,
     getEggBalance,
-    getPrizeSent, getPlayerWins, getPlayerLoses,
+    getPlayerWins,
+    getPlayerLoses, getGameResult, getGamePrize,
 } from "../src/sdk/gameData";
 import { MAKER_SEED, TAKER_SEED, IMPOSTOR_SEED } from "../src/settings";
 
@@ -79,12 +80,20 @@ describe('Get Prize', function() {
         const eggBalanceAfter = await getEggBalance(takerAddress);
         const winsAfter = await getPlayerWins(takerAddress);
         const losesAfter = await getPlayerLoses(makerAddress);
+        const makerResult = await getGameResult(gameId, makerAddress);
+        const makerPrize = await getGamePrize(gameId, makerAddress);
+        const takerResult = await getGameResult(gameId, takerAddress);
+        const takerPrize = await getGamePrize(gameId, takerAddress);
 
         assert.equal(currentTakerGame, 0);
         assert.equal(currentMakerGame, 0);
         assert.equal(eggBalanceAfter - eggBalanceBefore, betEggs * 2);
         assert.equal(winsBefore + 1, winsAfter);
         assert.equal(losesBefore + 1, losesAfter);
+        assert.equal(takerResult, "win");
+        assert.equal(takerPrize, betEggs);
+        assert.equal(makerResult, "lose");
+        assert.equal(makerPrize, -betEggs);
     });
 
     it("Winner can't get prize twice", async function () {

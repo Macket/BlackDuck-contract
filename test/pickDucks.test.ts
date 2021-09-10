@@ -44,7 +44,7 @@ describe('Pick Ducks', function() {
         try {
             await broadcastTx(invokeScript(pickDucksTx(EGG_ID, TAKER_MEDIUM_DUCK, TAKER_BEST_DUCK), TAKER_SEED));
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], 'not valid NFT')
+            assert.isTrue(err.message.split(': ')[1].includes('not valid NFT'));
         }
     });
 
@@ -52,7 +52,15 @@ describe('Pick Ducks', function() {
         try {
             await broadcastTx(invokeScript(wrongPickDucksTx(TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK), TAKER_SEED));
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], 'Index 2 out of bounds for length 2')
+            assert.strictEqual(err.message.split(': ')[1], "function 'pickDucks takes 3 args but 2 were(was) given");
+        }
+    });
+
+    it("Taker can't play with alien duck", async function () {
+        try {
+            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_MEDIUM_DUCK), TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], "Asset " + MAKER_WORST_DUCK + " doesn't belong to you");
         }
     });
 
@@ -72,7 +80,7 @@ describe('Pick Ducks', function() {
         assert.equal(mediumRarity, 27);
         assert.equal(bestRarity, 37);
         assert.equal(gameStep, 1);
-        assert.equal(expirationHeight, height + STEP_DURATION);
+        assert.approximately(expirationHeight, height + STEP_DURATION, 1);
     });
 
     it("Taker can't pick again", async function () {
@@ -80,6 +88,14 @@ describe('Pick Ducks', function() {
             await broadcastTx(invokeScript(pickDucksTx(TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_BEST_DUCK), TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "It is the maker's turn to pick now");
+        }
+    });
+
+    it("Maker can't play with alien duck", async function () {
+        try {
+            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, TAKER_BEST_DUCK), MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], "Asset " + TAKER_BEST_DUCK + " doesn't belong to you");
         }
     });
 
@@ -99,7 +115,7 @@ describe('Pick Ducks', function() {
         assert.equal(mediumRarity, 22);
         assert.equal(bestRarity, 33);
         assert.equal(gameStep, 2);
-        assert.equal(expirationHeight, height + STEP_DURATION);
+        assert.approximately(expirationHeight, height + STEP_DURATION, 1);
     });
 
     it("Maker can't pick again", async function () {

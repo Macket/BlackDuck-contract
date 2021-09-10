@@ -30,6 +30,8 @@ import {
     getDuckOrder,
     getEggBalance,
     getPlayerDraws,
+    getGameResult,
+    getGamePrize,
 } from "../src/sdk/gameData";
 import {
     MAKER_SEED,
@@ -99,19 +101,19 @@ describe('Draw test', function() {
         }
     });
 
-    it('Medium <= worst revert', async function () {
+    it('Medium < worst revert', async function () {
         try {
-            await broadcastTx(invokeScript(makeGameTx( 0, 1, 1, 3, EGGs), MAKER_SEED));
+            await broadcastTx(invokeScript(makeGameTx( 0, 2, 1, 3, EGGs), MAKER_SEED));
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], 'The medium duck must be better than the worst one')
+            assert.strictEqual(err.message.split(': ')[1], "The medium range can't be less than the worst one")
         }
     });
 
-    it('Best <= medium revert', async function () {
+    it('Best < medium revert', async function () {
         try {
-            await broadcastTx(invokeScript(makeGameTx( 0, 1, 2, 1, EGGs), MAKER_SEED));
+            await broadcastTx(invokeScript(makeGameTx( 0, 2, 2, 1, EGGs), MAKER_SEED));
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], 'The best duck must be better than the medium one')
+            assert.strictEqual(err.message.split(': ')[1], "The best range can't be worse than the medium one")
         }
     });
 
@@ -259,7 +261,7 @@ describe('Draw test', function() {
         try {
             await broadcastTx(invokeScript(pickDucksTx(EGG_ID, TAKER_MEDIUM_DUCK, TAKER_BEST_DUCK), TAKER_SEED));
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], 'not valid NFT')
+            assert.isTrue(err.message.split(': ')[1].includes('not valid NFT'));
         }
     });
 
@@ -267,7 +269,15 @@ describe('Draw test', function() {
         try {
             await broadcastTx(invokeScript(wrongPickDucksTx(TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK), TAKER_SEED));
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], 'Index 2 out of bounds for length 2')
+            assert.strictEqual(err.message.split(': ')[1], "function 'pickDucks takes 3 args but 2 were(was) given");
+        }
+    });
+
+    it("Taker can't play with alien duck", async function () {
+        try {
+            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_MEDIUM_DUCK), TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], "Asset " + MAKER_WORST_DUCK + " doesn't belong to you");
         }
     });
 
@@ -295,6 +305,14 @@ describe('Draw test', function() {
             await broadcastTx(invokeScript(pickDucksTx(TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_BEST_DUCK), TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "It is the maker's turn to pick now");
+        }
+    });
+
+    it("Maker can't play with alien duck", async function () {
+        try {
+            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, TAKER_BEST_DUCK), MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], "Asset " + TAKER_BEST_DUCK + " doesn't belong to you");
         }
     });
 
@@ -510,10 +528,15 @@ describe('Draw test', function() {
         const currentMakerGame = await getPlayerCurrentGame(makerAddress);
         const eggBalanceAfter = await getEggBalance(makerAddress);
         const drawsAfter = await getPlayerDraws(makerAddress);
+        const makerResult = await getGameResult(gameId, makerAddress);
+        const makerPrize = await getGamePrize(gameId, makerAddress);
+
 
         assert.equal(currentMakerGame, 0);
         assert.equal(eggBalanceAfter - eggBalanceBefore, betEggs);
         assert.equal(drawsBefore + 1, drawsAfter);
+        assert.equal(makerResult, "draw");
+        assert.equal(makerPrize, 0);
     });
 
     it("Maker can't get EGGs back twice", async function () {
@@ -536,10 +559,14 @@ describe('Draw test', function() {
         const currentTakerGame = await getPlayerCurrentGame(takerAddress);
         const eggBalanceAfter = await getEggBalance(takerAddress);
         const drawsAfter = await getPlayerDraws(takerAddress);
+        const takerResult = await getGameResult(gameId, takerAddress);
+        const takerPrize = await getGamePrize(gameId, takerAddress);
 
         assert.equal(currentTakerGame, 0);
         assert.equal(eggBalanceAfter - eggBalanceBefore, betEggs);
         assert.equal(drawsBefore + 1, drawsAfter);
+        assert.equal(takerResult, "draw");
+        assert.equal(takerPrize, 0);
     });
 
     it("Taker can't get EGGs back twice", async function () {

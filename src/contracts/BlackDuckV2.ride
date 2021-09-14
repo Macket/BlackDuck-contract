@@ -455,34 +455,49 @@ func getPrize() = {
     let gameId = getPlayerCurrentGame(callerAddress)
     let playerRole = getPlayerRole(gameId, callerAddress)
     let anotherPlayerAddress = if playerRole == "maker" then getTaker(gameId) else getMaker(gameId)
+    let anotherPlayerCurrentGame = getPlayerCurrentGame(anotherPlayerAddress)
     let winner = getWinner(gameId)
 
     if (gameId == 0) then throw("You don't have an active game")
     else if (winner == playerRole) then {
         let bet = getBetEggs(gameId)
+
+        if (anotherPlayerCurrentGame == gameId) then{
+            [
+                IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0),
+                IntegerEntry(getPlayerCurrentGameKey(anotherPlayerAddress), 0),
+                IntegerEntry(getPlayerWinsKey(callerAddress), getPlayerWins(callerAddress) + 1),
+                IntegerEntry(getPlayerLosesKey(anotherPlayerAddress), getPlayerLoses(anotherPlayerAddress) + 1),
+                StringEntry(getGameResultKey(gameId, callerAddress), "win"),
+                StringEntry(getGameResultKey(gameId, anotherPlayerAddress), "lose"),
+                IntegerEntry(getGamePrizeKey(gameId, callerAddress), bet),
+                IntegerEntry(getGamePrizeKey(gameId, anotherPlayerAddress), -bet),
+                ScriptTransfer(i.caller, getBetEggs(gameId) * 2, eggsAssetId)
+            ]
+        } else {
+            [
+                IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0),
+                IntegerEntry(getPlayerWinsKey(callerAddress), getPlayerWins(callerAddress) + 1),
+                IntegerEntry(getPlayerLosesKey(anotherPlayerAddress), getPlayerLoses(anotherPlayerAddress) + 1),
+                StringEntry(getGameResultKey(gameId, callerAddress), "win"),
+                StringEntry(getGameResultKey(gameId, anotherPlayerAddress), "lose"),
+                IntegerEntry(getGamePrizeKey(gameId, callerAddress), bet),
+                IntegerEntry(getGamePrizeKey(gameId, anotherPlayerAddress), -bet),
+                ScriptTransfer(i.caller, getBetEggs(gameId) * 2, eggsAssetId)
+            ]
+        }
+    } else if (winner == "draw") then {
         [
             IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0),
-            IntegerEntry(getPlayerCurrentGameKey(anotherPlayerAddress), 0),
-            IntegerEntry(getPlayerWinsKey(callerAddress), getPlayerWins(callerAddress) + 1),
-            IntegerEntry(getPlayerLosesKey(anotherPlayerAddress), getPlayerLoses(anotherPlayerAddress) + 1),
-            StringEntry(getGameResultKey(gameId, callerAddress), "win"),
-            StringEntry(getGameResultKey(gameId, anotherPlayerAddress), "lose"),
-            IntegerEntry(getGamePrizeKey(gameId, callerAddress), bet),
-            IntegerEntry(getGamePrizeKey(gameId, anotherPlayerAddress), -bet),
-            ScriptTransfer(i.caller, getBetEggs(gameId) * 2, eggsAssetId)
-      ]
-    } else if (winner == "draw") then {
-      [
-          IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0),
-          IntegerEntry(getPlayerDrawsKey(callerAddress), getPlayerDraws(callerAddress) + 1),
-          StringEntry(getGameResultKey(gameId, callerAddress), "draw"),
-          IntegerEntry(getGamePrizeKey(gameId, callerAddress), 0),
-          ScriptTransfer(i.caller, getBetEggs(gameId), eggsAssetId)
-      ]
+            IntegerEntry(getPlayerDrawsKey(callerAddress), getPlayerDraws(callerAddress) + 1),
+            StringEntry(getGameResultKey(gameId, callerAddress), "draw"),
+            IntegerEntry(getGamePrizeKey(gameId, callerAddress), 0),
+            ScriptTransfer(i.caller, getBetEggs(gameId), eggsAssetId)
+        ]
     } else {
         [
-          IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0)
-      ]
+            IntegerEntry(getPlayerCurrentGameKey(callerAddress), 0)
+        ]
     }
 }
 

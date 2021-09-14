@@ -330,13 +330,14 @@ func takeGame(slot: Int) = {
 
 @Callable(i)
 func kickGame(slot: Int) = {
+    let callerAddress = toBase58String(i.caller.bytes)
     let gameId = getSlot(slot)
+    let maker = getMaker(gameId)
 
     if (slot < 0 || slot >= SLOTS) then throw("Invalid slot")
     else if (gameId == 0) then throw("Slot is empty")
-    else if (getWaitingExpirationHeight(gameId) > height) then throw("Waiting is not finished yet")
+    else if (callerAddress != maker && getWaitingExpirationHeight(gameId) > height) then throw("Waiting is not finished yet")
     else {
-        let maker = getMaker(gameId)
         [
             IntegerEntry(getPlayerCurrentGameKey(maker), 0),
             IntegerEntry(getSlotKey(slot), 0),

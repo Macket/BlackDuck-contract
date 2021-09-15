@@ -24,7 +24,7 @@
 # let farmingAddress = base58'3PAETTtuW7aSiyKtn9GuML3RgtV1xdq1mQW'
 # let rarityProviderAddress = base58'3PMSJXA6nm5AsB8Kr2h1uW2mLrCmb57kpwA'
 
-# let eggsAssetId = base58'JCGDtrVy64cCJ1wCKfCaiNQMnyYwii71TbE5QeAHfxgF'
+# let eggsAssetId = base58'C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS'
 
 # Testnet
 let farmingAddress = base58'3NBznG19rEYUAcnukTRTtwJHBVKQLbobVdC'

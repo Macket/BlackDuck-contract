@@ -6,6 +6,4 @@ export const broadcastTx = async (tx): Promise<void> => {
     await waitForTx(tx.id, { apiBase: 'https://nodes-testnet.wavesnodes.com' });
 };
 
-export type DUCKS_ORDER_TYPE = "worst,medium,best" | "worst,best,medium" | "medium,worst,best" | "medium,best,worst" | "best,worst,medium" | "best,medium,worst";
-
-export const generateCommit = (duckOrder: DUCKS_ORDER_TYPE, salt: string): string => base58Encode(sha256(stringToBytes(duckOrder + salt)));
+export const generateCommit = (secret: string, salt: string): string => base58Encode(sha256(stringToBytes(secret + salt)));

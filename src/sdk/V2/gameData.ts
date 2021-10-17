@@ -82,12 +82,12 @@ export const getRange = async (gameId: number, rangePosition: string): Promise<n
     return (await getData('game' + gameId.toString() + '_range_' + rangePosition))[0].value as number;
 }
 
-export const getMakerRandomsCommit = async (gameId: number): Promise<number> => {
-    return (await getData('game' + gameId.toString() + "_maker_randomsCommit"))[0].value as number;
+export const getMakerRandomsCommit = async (gameId: number): Promise<string> => {
+    return (await getData('game' + gameId.toString() + "_maker_randomsCommit"))[0].value as string;
 }
 
-export const getRandoms = async (gameId: number, playerRole: 'maker' | 'taker'): Promise<number> => {
-    return (await getData('game' + gameId.toString() + "_" + playerRole + "_randoms"))[0].value as number;
+export const getRandoms = async (gameId: number, playerRole: 'maker' | 'taker'): Promise<string> => {
+    return (await getData('game' + gameId.toString() + "_" + playerRole + "_randoms"))[0].value as string;
 }
 
 export const getStep = async (gameId: number): Promise<number> => {

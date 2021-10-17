@@ -3,11 +3,12 @@ import { EGG_ID, GAME_ADDRESS, CHAIN_ID } from "../../settings";
 
 export const makeGameTx = (
     slot: number,
-    rarityRangeWorst: number,
-    rarityRangeMedium: number,
-    rarityRangeBest: number,
+    worstRange: number,
+    mediumRange: number,
+    bestRange: number,
     randomsCommit: string,
     eggs: number,
+    assetId = EGG_ID,
 ): IInvokeScriptParams => ({
     dApp: GAME_ADDRESS,
     fee: 500000,
@@ -15,14 +16,14 @@ export const makeGameTx = (
         function: "makeGame",
         args: [
             { type: 'integer', value: slot },
-            { type: 'integer', value: rarityRangeWorst },
-            { type: 'integer', value: rarityRangeMedium },
-            { type: 'integer', value: rarityRangeBest },
+            { type: 'integer', value: worstRange },
+            { type: 'integer', value: mediumRange },
+            { type: 'integer', value: bestRange },
             { type: 'string', value: randomsCommit },
         ],
     },
     payment: [{
-        assetId: EGG_ID,
+        assetId: assetId,
         amount: eggs,
     }],
     chainId: CHAIN_ID,

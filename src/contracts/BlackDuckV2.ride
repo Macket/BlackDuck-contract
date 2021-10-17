@@ -281,7 +281,7 @@ func makeGame(slot: Int, rarityRangeWorst: Int, rarityRangeMedium: Int, rarityRa
   else if (slot < 0 || slot >= SLOTS) then throw("Invalid slot")
   else if (slotGameId != 0) then throw("This slot is busy")
   else if (payment.assetId != eggsAssetId) then throw("You can attach only EGGs with the following asset id: " + eggsAssetId.toBase58String())
-  else if (eggs != 1) then throw("Bet must be 0.01 EGG during beta test")
+  else if (eggs != 1000000) then throw("Bet must be 0.01 EGG during beta test")
   else if (rarityRangeWorst < 1 || rarityRangeWorst > 5) then throw("Invalid rarity range for the worst duck")
   else if (rarityRangeMedium < 1 || rarityRangeMedium > 5) then throw("Invalid rarity range for the medium duck")
   else if (rarityRangeBest < 1 || rarityRangeBest > 5) then throw("Invalid rarity range for the best duck")

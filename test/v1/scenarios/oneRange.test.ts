@@ -10,7 +10,7 @@ import {
     revealTx,
     takeGameTx,
     wrongPickDucksTx
-} from "../../../src/sdk/V1/gameTransactions";
+} from "../../../src/sdk/v1/gameTransactions";
 import {
     getNextGameId,
     getBlockHeight,
@@ -31,7 +31,7 @@ import {
     getEggBalance,
     getPlayerWins,
     getPlayerLoses, getGameResult, getGamePrize,
-} from "../../../src/sdk/V1/gameData";
+} from "../../../src/sdk/v1/gameData";
 import {
     MAKER_SEED,
     IMPOSTOR_SEED,

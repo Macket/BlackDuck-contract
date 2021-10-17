@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
 import { broadcastTx } from "../../src/sdk/utils";
-import { makeGameTx } from "../../src/sdk/gameTransactions";
+import { makeGameTx } from "../../src/sdk/V1/gameTransactions";
 import {
     getNextGameId,
     getBlockHeight,
@@ -13,7 +13,7 @@ import {
     getRarityRange,
     getSlot,
     getWaitingExpirationHeight,
-} from "../../src/sdk/gameData";
+} from "../../src/sdk/V1/gameData";
 import { MAKER_SEED, IMPOSTOR_SEED, WAITING } from "../../src/settings";
 
 describe('Make Game', function() {

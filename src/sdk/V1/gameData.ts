@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GAME_ADDRESS, FARMING_ADDRESS, EGG_ID, WAVES_NODE } from "../settings";
+import { GAME_ADDRESS, FARMING_ADDRESS, EGG_ID, WAVES_NODE } from "../../settings";
 
 
 export const getEggBalance = async (address: string): Promise<number> => {

@@ -1,6 +1,6 @@
 import { invokeScript } from '@waves/waves-transactions';
-import { broadcastTx } from './utils';
-import {TAKER_SEED, FARMING_ADDRESS, EGG_ID, TAKER_BEST_DUCK} from "../settings";
+import { broadcastTx } from '../utils';
+import {TAKER_SEED, FARMING_ADDRESS, EGG_ID, TAKER_BEST_DUCK} from "../../settings";
 
 const buyPerchTx = (color: string, referrer: string) => invokeScript({
     dApp: FARMING_ADDRESS,
@@ -44,8 +44,7 @@ const unstakeNFTTx = (duckId: string) => invokeScript({
 
 export const buyPerch = async () => {
     try {
-        const txId: string = await broadcastTx(buyPerchTx("B", ""));
-        console.log(txId);
+        await broadcastTx(buyPerchTx("B", ""));
     } catch (err) {
         console.log(err.message);
     }
@@ -53,8 +52,7 @@ export const buyPerch = async () => {
 
 export const stakeNFT = async () => {
     try {
-        const txId: string = await broadcastTx(stakeNFTTx(TAKER_BEST_DUCK));
-        console.log(txId);
+        await broadcastTx(stakeNFTTx(TAKER_BEST_DUCK));
     } catch (err) {
         console.log(err.message);
     }
@@ -62,11 +60,8 @@ export const stakeNFT = async () => {
 
 export const unstakeNFT = async () => {
     try {
-        const txId: string = await broadcastTx(unstakeNFTTx(TAKER_BEST_DUCK));
-        console.log(txId);
+        await broadcastTx(unstakeNFTTx(TAKER_BEST_DUCK));
     } catch (err) {
         console.log(err.message);
     }
 }
-
-stakeNFT();

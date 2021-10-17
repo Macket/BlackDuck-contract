@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
-import {broadcastTx, generateCommit} from "../../src/sdk/utils";
+import {broadcastTx, generateCommit} from "../../../src/sdk/utils";
 import {
     commitTx,
     getPrizeTx,
@@ -10,7 +10,7 @@ import {
     revealTx,
     takeGameTx,
     wrongPickDucksTx
-} from "../../src/sdk/gameTransactions";
+} from "../../../src/sdk/V1/gameTransactions";
 import {
     getNextGameId,
     getBlockHeight,
@@ -30,10 +30,8 @@ import {
     getDuckOrder,
     getEggBalance,
     getPlayerWins,
-    getPlayerLoses,
-    getGameResult,
-    getGamePrize,
-} from "../../src/sdk/gameData";
+    getPlayerLoses, getGameResult, getGamePrize,
+} from "../../../src/sdk/V1/gameData";
 import {
     MAKER_SEED,
     IMPOSTOR_SEED,
@@ -42,19 +40,23 @@ import {
     STEP_DURATION,
     MAKER_WORST_DUCK,
     MAKER_MEDIUM_DUCK,
+    MAKER_MEDIUM_DUCK2,
     MAKER_BEST_DUCK,
     EGG_ID,
-    TAKER_MEDIUM_DUCK,
-    TAKER_BEST_DUCK,
     TAKER_WORST_DUCK,
+    TAKER_MEDIUM_DUCK,
+    TAKER_MEDIUM_DUCK_SAME_RARITY,
+    TAKER_MEDIUM_DUCK2,
+    TAKER_BEST_DUCK,
     MAKER_SALT,
     TAKER_SALT,
     IMPOSTOR_WORST_DUCK,
     IMPOSTOR_MEDIUM_DUCK,
+    IMPOSTOR_MEDIUM_DUCK2,
     IMPOSTOR_BEST_DUCK,
-} from "../../src/settings";
+} from "../../../src/settings";
 
-describe('Basic test', function() {
+describe('One range test', function() {
     this.timeout(120000);
     const EGGs = 1;
 
@@ -123,7 +125,7 @@ describe('Basic test', function() {
         const gameId = await getNextGameId();
         const height = await getBlockHeight();
 
-        await broadcastTx(invokeScript(makeGameTx(0, 2, 3, 4, EGGs), MAKER_SEED));
+        await broadcastTx(invokeScript(makeGameTx(0, 2, 3, 3, EGGs), MAKER_SEED));
 
         const currentPlayerGame = await getPlayerCurrentGame(address(MAKER_SEED, TEST_NET_CHAIN_ID));
         const playerRole = await getPlayerRole(gameId, address(MAKER_SEED, TEST_NET_CHAIN_ID));
@@ -142,7 +144,7 @@ describe('Basic test', function() {
         assert.equal(betEggs, 1);
         assert.equal(worstRarityRange, 2);
         assert.equal(mediumRarityRange, 3);
-        assert.equal(bestRarityRange, 4);
+        assert.equal(bestRarityRange, 3);
         assert.approximately(waitingExpirationHeight, height + WAITING, 1);
         assert.equal(gameId, slotGameId);
         assert.equal(gameId + 1, nextGameId);
@@ -158,7 +160,7 @@ describe('Basic test', function() {
 
     it("Can't make another game", async function () {
         try {
-            await broadcastTx(invokeScript(makeGameTx( 1, 2, 3, 4, EGGs), MAKER_SEED));
+            await broadcastTx(invokeScript(makeGameTx( 1, 2, 3, 3, EGGs), MAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], 'You already have an active game')
         }
@@ -166,7 +168,7 @@ describe('Basic test', function() {
 
     it("Can't occupy a busy slot", async function () {
         try {
-            await broadcastTx(invokeScript(makeGameTx( 0, 2, 3, 4, EGGs), IMPOSTOR_SEED));
+            await broadcastTx(invokeScript(makeGameTx( 0, 2, 3, 3, EGGs), IMPOSTOR_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], 'This slot is busy')
         }
@@ -244,7 +246,7 @@ describe('Basic test', function() {
 
     it("Impostor can't pick", async function () {
         try {
-            await broadcastTx(invokeScript(pickDucksTx(IMPOSTOR_WORST_DUCK, IMPOSTOR_MEDIUM_DUCK, IMPOSTOR_BEST_DUCK), IMPOSTOR_SEED));
+            await broadcastTx(invokeScript(pickDucksTx(IMPOSTOR_WORST_DUCK, IMPOSTOR_MEDIUM_DUCK, IMPOSTOR_MEDIUM_DUCK2), IMPOSTOR_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
         }
@@ -252,7 +254,7 @@ describe('Basic test', function() {
 
     it("Maker can't pick before taker", async function () {
         try {
-            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, MAKER_BEST_DUCK), MAKER_SEED));
+            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, MAKER_MEDIUM_DUCK2), MAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "It is the taker's turn to pick now");
         }
@@ -260,7 +262,7 @@ describe('Basic test', function() {
 
     it("Invalid asset revert", async function () {
         try {
-            await broadcastTx(invokeScript(pickDucksTx(EGG_ID, TAKER_MEDIUM_DUCK, TAKER_BEST_DUCK), TAKER_SEED));
+            await broadcastTx(invokeScript(pickDucksTx(EGG_ID, TAKER_MEDIUM_DUCK, TAKER_MEDIUM_DUCK2), TAKER_SEED));
         } catch (err) {
             assert.isTrue(err.message.split(': ')[1].includes('not valid NFT'));
         }
@@ -276,9 +278,25 @@ describe('Basic test', function() {
 
     it("Taker can't play with alien duck", async function () {
         try {
-            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_MEDIUM_DUCK), TAKER_SEED));
+            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_MEDIUM_DUCK2), TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Asset " + MAKER_WORST_DUCK + " doesn't belong to you");
+        }
+    });
+
+    it("Ducks of the same rarity can't play", async function () {
+        try {
+            await broadcastTx(invokeScript(pickDucksTx(TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_MEDIUM_DUCK_SAME_RARITY), TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], "Ducks must have different rarities");
+        }
+    });
+
+    it("Can't use one duck twice", async function () {
+        try {
+            await broadcastTx(invokeScript(pickDucksTx(TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_MEDIUM_DUCK), TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], "Ducks must have different rarities");
         }
     });
 
@@ -286,7 +304,7 @@ describe('Basic test', function() {
         const height = await getBlockHeight();
         const gameId = await getPlayerCurrentGame(address(TAKER_SEED, TEST_NET_CHAIN_ID));
 
-        await broadcastTx(invokeScript(pickDucksTx(TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_BEST_DUCK), TAKER_SEED));
+        await broadcastTx(invokeScript(pickDucksTx(TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_MEDIUM_DUCK2), TAKER_SEED));
 
         const worstRarity = await getRarity(gameId, "taker", "worst");
         const mediumRarity = await getRarity(gameId, "taker", "medium");
@@ -296,14 +314,14 @@ describe('Basic test', function() {
 
         assert.equal(worstRarity, 13);
         assert.equal(mediumRarity, 27);
-        assert.equal(bestRarity, 37);
+        assert.equal(bestRarity, 22);
         assert.equal(gameStep, 1);
         assert.approximately(expirationHeight, height + STEP_DURATION, 1);
     });
 
     it("Taker can't pick again", async function () {
         try {
-            await broadcastTx(invokeScript(pickDucksTx(TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_BEST_DUCK), TAKER_SEED));
+            await broadcastTx(invokeScript(pickDucksTx(TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK, TAKER_MEDIUM_DUCK2), TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "It is the maker's turn to pick now");
         }
@@ -311,9 +329,9 @@ describe('Basic test', function() {
 
     it("Maker can't play with alien duck", async function () {
         try {
-            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, TAKER_BEST_DUCK), MAKER_SEED));
+            await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, TAKER_MEDIUM_DUCK), MAKER_SEED));
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], "Asset " + TAKER_BEST_DUCK + " doesn't belong to you");
+            assert.strictEqual(err.message.split(': ')[1], "Asset " + TAKER_MEDIUM_DUCK + " doesn't belong to you");
         }
     });
 
@@ -321,7 +339,7 @@ describe('Basic test', function() {
         const height = await getBlockHeight();
         const gameId = await getPlayerCurrentGame(address(MAKER_SEED, TEST_NET_CHAIN_ID));
 
-        await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, MAKER_BEST_DUCK), MAKER_SEED));
+        await broadcastTx(invokeScript(pickDucksTx(MAKER_WORST_DUCK, MAKER_MEDIUM_DUCK, MAKER_MEDIUM_DUCK2), MAKER_SEED));
 
         const worstRarity = await getRarity(gameId, "maker", "worst");
         const mediumRarity = await getRarity(gameId, "maker", "medium");
@@ -331,7 +349,7 @@ describe('Basic test', function() {
 
         assert.equal(worstRarity, 13);
         assert.equal(mediumRarity, 22);
-        assert.equal(bestRarity, 33);
+        assert.equal(bestRarity, 27);
         assert.equal(gameStep, 2);
         assert.approximately(expirationHeight, height + STEP_DURATION, 1);
     });
@@ -564,13 +582,13 @@ describe('Basic test', function() {
 
         assert.equal(currentTakerGame, 0);
         assert.equal(currentMakerGame, 0);
-        assert.equal(eggBalanceAfter - eggBalanceBefore, betEggs * 2);
+        assert.equal(eggBalanceAfter - eggBalanceBefore, betEggs * 2, "taker EGG balance");
         assert.equal(winsBefore + 1, winsAfter);
         assert.equal(losesBefore + 1, losesAfter);
-        assert.equal(takerResult, "win");
-        assert.equal(takerPrize, betEggs);
-        assert.equal(makerResult, "lose");
-        assert.equal(makerPrize, -betEggs);
+        assert.equal(takerResult, "win", "taker result");
+        assert.equal(takerPrize, betEggs, "taker prize");
+        assert.equal(makerResult, "lose", "maker result");
+        assert.equal(makerPrize, -betEggs, "maker prize");
     });
 
     it("Winner can't get prize twice", async function () {

@@ -2,8 +2,8 @@ import { assert } from 'chai';
 import { address, TEST_NET_CHAIN_ID } from '@waves/ts-lib-crypto';
 import { invokeScript } from "@waves/waves-transactions";
 import { broadcastTx } from "../../src/sdk/utils";
-import { kickGameTx } from "../../src/sdk/gameTransactions";
-import { getSlot, getPlayerCurrentGame } from "../../src/sdk/gameData";
+import { kickGameTx } from "../../src/sdk/V1/gameTransactions";
+import { getSlot, getPlayerCurrentGame } from "../../src/sdk/V1/gameData";
 import { MAKER_SEED, IMPOSTOR_SEED } from "../../src/settings";
 
 describe('Kick Game', function() {

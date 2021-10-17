@@ -23,7 +23,9 @@ export const TAKER_SALT = "3441badf6795"
 
 export const INCUBATOR_ADDRESS = "3MtBigTsaeevrcJAEwVcr4quwkqcrtnjoAh"
 export const FARMING_ADDRESS = "3NBznG19rEYUAcnukTRTtwJHBVKQLbobVdC"
+
 export const GAME_ADDRESS = "3N6oaapvYkEryHUr4vAiPRXM3iS6kMYXito"
+export const RARITY_PROVIDER_ADDRESS = '3NCman4dCzk1HWWU4DPTr5rsbhvuUCwwUZh';
 
 export const EGG_ID = "3VUCuh9dWqe54SdzzNUkXhFXpc8UQynnJVh42B7MjNzN"
 export const WAITING = 8

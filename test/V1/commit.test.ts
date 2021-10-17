@@ -2,14 +2,14 @@ import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
 import { broadcastTx } from "../../src/sdk/utils";
-import {commitTx, pickDucksTx} from "../../src/sdk/gameTransactions";
+import {commitTx, pickDucksTx} from "../../src/sdk/V1/gameTransactions";
 import {
     getPlayerCurrentGame,
     getCommit,
     getStep,
     getBlockHeight,
     getExpirationHeight,
-} from "../../src/sdk/gameData";
+} from "../../src/sdk/V1/gameData";
 import {
     MAKER_SEED,
     TAKER_SEED,

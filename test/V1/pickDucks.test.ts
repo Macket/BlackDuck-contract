@@ -2,8 +2,8 @@ import { assert } from 'chai';
 import { address, TEST_NET_CHAIN_ID } from '@waves/ts-lib-crypto';
 import { invokeScript } from "@waves/waves-transactions";
 import { broadcastTx } from "../../src/sdk/utils";
-import { pickDucksTx, wrongPickDucksTx } from "../../src/sdk/gameTransactions";
-import { getPlayerCurrentGame, getBlockHeight, getRarity, getStep, getExpirationHeight } from "../../src/sdk/gameData";
+import { pickDucksTx, wrongPickDucksTx } from "../../src/sdk/V1/gameTransactions";
+import { getPlayerCurrentGame, getBlockHeight, getRarity, getStep, getExpirationHeight } from "../../src/sdk/V1/gameData";
 import {
     MAKER_SEED,
     TAKER_SEED,

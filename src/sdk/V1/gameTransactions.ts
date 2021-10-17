@@ -1,6 +1,6 @@
 import { IInvokeScriptParams } from "@waves/waves-transactions";
-import { EGG_ID, GAME_ADDRESS, CHAIN_ID } from "../settings";
-import { generateCommit, DUCKS_ORDER_TYPE } from  "./utils"
+import { EGG_ID, GAME_ADDRESS, CHAIN_ID } from "../../settings";
+import { generateCommit, DUCKS_ORDER_TYPE } from "../utils"
 
 export const makeGameTx = (
     slot: number,

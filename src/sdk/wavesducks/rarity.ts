@@ -1,7 +1,5 @@
 import axios from 'axios';
-import { FARMING_ADDRESS } from "../settings";
-
-export const RARITY_PROVIDER_ADDRESS = '3NCman4dCzk1HWWU4DPTr5rsbhvuUCwwUZh';
+import { RARITY_PROVIDER_ADDRESS } from "../../settings";
 
 const assetId = '7TckPpGLjcHJ53XVXJ4kXC7aS9vZRhAMSgCtrDGD3K2C';
 

@@ -2,14 +2,14 @@ import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
 import { broadcastTx } from "../../src/sdk/utils";
-import { getPrizeTx } from "../../src/sdk/gameTransactions";
+import { getPrizeTx } from "../../src/sdk/V1/gameTransactions";
 import {
     getPlayerCurrentGame,
     getBetEggs,
     getEggBalance,
     getPlayerWins,
     getPlayerLoses, getGameResult, getGamePrize,
-} from "../../src/sdk/gameData";
+} from "../../src/sdk/V1/gameData";
 import { MAKER_SEED, TAKER_SEED, IMPOSTOR_SEED } from "../../src/settings";
 
 describe('Get Prize', function() {

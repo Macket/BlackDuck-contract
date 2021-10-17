@@ -62,8 +62,8 @@ export const getTaker = async (gameId: number): Promise<string> => {
     return (await getData('game' + gameId.toString() + '_taker'))[0].value as string;
 }
 
-export const getTakerSkipReplace = async (gameId: number): Promise<string> => {
-    return (await getData('game' + gameId.toString() + '_taker_skipReplace'))[0].value as string;
+export const getTakerSkipReplace = async (gameId: number): Promise<boolean> => {
+    return (await getData('game' + gameId.toString() + '_taker_skipReplace'))[0].value as boolean;
 }
 
 export const getBet = async (gameId: number): Promise<number> => {

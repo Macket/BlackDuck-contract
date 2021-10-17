@@ -30,3 +30,5 @@ export const WAITING = 8
 export const STEP_DURATION = 5
 
 export const CHAIN_ID = "T"
+
+export const WAVES_NODE = "https://nodes-testnet.wavesnodes.com"

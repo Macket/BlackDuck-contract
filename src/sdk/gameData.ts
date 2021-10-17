@@ -1,19 +1,19 @@
 import axios from 'axios';
-import { GAME_ADDRESS, FARMING_ADDRESS, EGG_ID } from "../settings";
+import { GAME_ADDRESS, FARMING_ADDRESS, EGG_ID, WAVES_NODE } from "../settings";
 
 
 export const getEggBalance = async (address: string): Promise<number> => {
-    const res = await axios.get(`https://nodes-testnet.wavesnodes.com/assets/balance/${address}/${EGG_ID}`);
+    const res = await axios.get(WAVES_NODE + `/assets/balance/${address}/${EGG_ID}`);
     return res.data.balance;
 };
 
 export const getData = async (regExp): Promise<{ key: string, type: string, value: string | number | boolean }[]> => {
-    const res = await axios.get(`https://nodes-testnet.wavesnodes.com/addresses/data/${GAME_ADDRESS}?matches=${regExp}`);
+    const res = await axios.get(WAVES_NODE + `/addresses/data/${GAME_ADDRESS}?matches=${regExp}`);
     return res.data;
 };
 
 export const getBlockHeight = async (): Promise<number> => {
-    const res = await axios.get("https://nodes-testnet.wavesnodes.com/blocks/height");
+    const res = await axios.get(WAVES_NODE + "/blocks/height");
     return res.data.height;
 };
 
@@ -26,13 +26,13 @@ type Duck = {assetId: string, genes: string, rarity: number};
 type Ducks = { 1: Duck[], 2: Duck[], 3: Duck[], 4: Duck[], 5: Duck[] };
 
 export const getFarmingDucks = async (address: string): Promise<Ducks> => {
-    const res = await axios.get(`https://nodes-testnet.wavesnodes.com/addresses/data/${FARMING_ADDRESS}?matches=address_${address}_.*_farmingPower`);
+    const res = await axios.get(WAVES_NODE + `/addresses/data/${FARMING_ADDRESS}?matches=address_${address}_.*_farmingPower`);
     const farmingDucks = res.data.filter(d => d.value > 0);
 
     const ducks = {1: [], 2: [], 3: [], 4: [], 5: []};
     for (let farmingDuck of farmingDucks) {
         const assetId = farmingDuck.key.split("_")[3];
-        const genes = (await axios.get(`https://nodes-testnet.wavesnodes.com/assets/details/${assetId}`)).data.name;
+        const genes = (await axios.get(WAVES_NODE + `/assets/details/${assetId}`)).data.name;
         const rarity = farmingDuck.value;
         ducks[Math.min(5, Math.ceil(rarity / 10))].push({assetId, genes, rarity})
     }

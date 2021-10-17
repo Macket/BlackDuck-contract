@@ -1,8 +1,8 @@
 import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
-import { broadcastTx } from "../src/sdk/utils";
-import { takeGameTx } from "../src/sdk/gameTransactions";
+import { broadcastTx } from "../../src/sdk/utils";
+import { takeGameTx } from "../../src/sdk/gameTransactions";
 import {
     getBlockHeight,
     getPlayerCurrentGame,
@@ -11,8 +11,8 @@ import {
     getBetEggs,
     getSlot,
     getExpirationHeight,
-} from "../src/sdk/gameData";
-import { TAKER_SEED, STEP_DURATION } from "../src/settings";
+} from "../../src/sdk/gameData";
+import { TAKER_SEED, STEP_DURATION } from "../../src/settings";
 
 describe('Take Game', function() {
     this.timeout(120000);

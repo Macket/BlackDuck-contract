@@ -1,0 +1,629 @@
+{-# STDLIB_VERSION 5 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+
+# --- Scenario ---
+#
+# Make game (providing ranges and commit for randoms)
+# Take game (providing randoms)
+#
+# Step 1 - maker reveals randoms (obligatory) and replaces one duck (optional)
+# Step 2 - taker replaces one duck (optional)
+#
+# Step 3 - taker commits order
+# Step 4 - maker sets order
+# Step 5 - taker reveals order
+#
+# Get prize
+#
+
+# Mainnet
+let farmingAddress = base58'3PAETTtuW7aSiyKtn9GuML3RgtV1xdq1mQW'
+let rarityProviderAddress = base58'3PMSJXA6nm5AsB8Kr2h1uW2mLrCmb57kpwA'
+
+let eggsAssetId = base58'C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS'
+
+# Testnet
+# let farmingAddress = base58'3NBznG19rEYUAcnukTRTtwJHBVKQLbobVdC'
+# let rarityProviderAddress = base58'3NCman4dCzk1HWWU4DPTr5rsbhvuUCwwUZh'
+
+# let eggsAssetId = base58'3VUCuh9dWqe54SdzzNUkXhFXpc8UQynnJVh42B7MjNzN'
+
+
+let SLOTS = 10
+let WAITING = 8
+let stepDuration = 5
+
+func tryGetInteger(key: String) = {
+    match getInteger(this, key) {
+        case b:Int => b
+        case _ => 0
+    }
+}
+
+func tryGetString(key: String) = {
+    match getString(this, key) {
+        case a:String => a
+        case _ => ""
+    }
+}
+
+func tryGetBoolean(key: String) = {
+    match getBoolean(this, key) {
+        case b:Boolean => b
+        case _ => false
+    }
+}
+
+func getNextGameId() = {
+  let nextId = tryGetInteger("nextGameId")
+  if (nextId == 0) then 1 else nextId
+}
+
+func getPlayerCurrentGameKey(playerAddress: String) = {
+    playerAddress + "_currentGame"
+}
+
+func getPlayerCurrentGame(playerAddress: String) = {
+    tryGetInteger(getPlayerCurrentGameKey(playerAddress))
+}
+
+func getSlotKey(slot: Int) = {
+    "slot" + toString(slot)
+}
+
+func getSlot(slot: Int) = {
+    tryGetInteger(getSlotKey(slot))
+}
+
+func getPlayerRoleKey(gameId: Int, playerAddress: String) = {
+    "game" + toString(gameId) + "_" + playerAddress
+}
+
+func getPlayerRole(gameId: Int, playerAddress: String) = {
+    tryGetString(getPlayerRoleKey(gameId, playerAddress))
+}
+
+func getMakerKey(gameId: Int) = {
+    "game" + toString(gameId) + "_maker"
+}
+
+func getMaker(gameId: Int) = {
+    tryGetString(getMakerKey(gameId))
+}
+
+func getTakerKey(gameId: Int) = {
+    "game" + toString(gameId) + "_taker"
+}
+
+func getTaker(gameId: Int) = {
+    tryGetString(getTakerKey(gameId))
+}
+
+func getTakerSkipReplaceKey(gameId: Int) = {
+    "game" + toString(gameId) + "_taker_skipReplace"
+}
+
+func getTakerSkipReplace(gameId: Int) = {
+    tryGetBoolean(getTakerSkipReplaceKey(gameId))
+}
+
+func getBetKey(gameId: Int) = {
+    "game" + toString(gameId) + "_bet"
+}
+
+func getBet(gameId: Int) = {
+    tryGetInteger(getBetKey(gameId))
+}
+
+func getWaitingExpirationHeightKey(gameId: Int) = {
+    "game" + toString(gameId) + "_waitingExpirationHeight"
+}
+
+func getWaitingExpirationHeight(gameId: Int) = {
+    tryGetInteger(getWaitingExpirationHeightKey(gameId))
+}
+
+func getExpirationHeightKey(gameId: Int) = {
+    "game" + toString(gameId) + "_expirationHeight"
+}
+
+func getExpirationHeight(gameId: Int) = {
+    tryGetInteger(getExpirationHeightKey(gameId))
+}
+
+func getRangeKey(gameId: Int, rangePosition: String) = {
+    "game" + toString(gameId) + "_range_" + rangePosition
+}
+
+func getRange(gameId: Int, rangePosition: String) = {
+    tryGetInteger(getRangeKey(gameId, rangePosition))
+}
+
+func getMakerRandomsCommitKey(gameId: Int) = {
+    "game" + toString(gameId) + "_maker" + "_randomsCommit"
+}
+
+func getMakerRandomsCommit(gameId: Int) = {
+    tryGetString(getMakerRandomsCommitKey(gameId))
+}
+
+func getRandomsKey(gameId: Int, playerRole: String) = {
+    "game" + toString(gameId) + "_" + playerRole + "_randoms"
+}
+
+func getRandoms(gameId: Int, playerRole: String) = {
+    tryGetString(getRandomsKey(gameId, playerRole))
+}
+
+func getStepKey(gameId: Int) = {
+    "game" + toString(gameId) + "_step"
+}
+
+func getStep(gameId: Int) = {
+    tryGetInteger(getStepKey(gameId))
+}
+
+func getRarityKey(gameId: Int, playerRole: String, rangePosition: String) = {
+    "game" + toString(gameId) + "_" + playerRole + "_" + rangePosition + "Rarity"
+}
+
+func getRarity(gameId: Int, playerRole: String, rangePosition: String) = {
+    tryGetInteger(getRarityKey(gameId, playerRole, rangePosition))
+}
+
+func getDuckIdKey(gameId: Int, playerRole: String) = {
+    "game" + toString(gameId) + "_" + playerRole + "_" + "duckId"
+}
+
+func getDuckId(gameId: Int, playerRole: String) = {
+    tryGetString(getDuckIdKey(gameId, playerRole))
+}
+
+func getReplacedRangeKey(gameId: Int, playerRole: String) = {
+    "game" + toString(gameId) + "_" + playerRole + "_" + "replacedRange"
+}
+
+func getReplacedRange(gameId: Int, playerRole: String) = {
+    tryGetString(getDuckIdKey(gameId, playerRole))
+}
+
+func getTakerOrderCommitKey(gameId: Int) = {
+    "game" + toString(gameId) + "_taker_orderCommit"
+}
+
+func getTakerOrderCommit(gameId: Int) = {
+    tryGetString(getTakerOrderCommitKey(gameId))
+}
+
+func getOrderKey(gameId: Int, playerRole: String) = {
+    "game" + toString(gameId) + "_" + playerRole + "_order"
+}
+
+func getOrder(gameId: Int, playerRole: String) = {
+    tryGetString(getOrderKey(gameId, playerRole))
+}
+
+# --- STATS ---
+
+func getPlayerResultKey(gameId: Int, playerAddress: String) = {
+    "game" + toString(gameId) + "_" + playerAddress + "_result"
+}
+
+func getPlayerResult(gameId: Int, playerAddress: String) = {
+    tryGetString(getPlayerResultKey(gameId, playerAddress))
+}
+
+func getPlayerPrizeKey(gameId: Int, playerAddress: String) = {
+    "game" + toString(gameId) + "_" + playerAddress + "_prize"
+}
+
+func getPlayerPrize(gameId: Int, playerAddress: String) = {
+    tryGetInteger(getPlayerPrizeKey(gameId, playerAddress))
+}
+
+func getPlayerWinsKey(playerAddress: String) = {
+    playerAddress + "_wins"
+}
+
+func getPlayerWins(playerAddress: String) = {
+    tryGetInteger(getPlayerWinsKey(playerAddress))
+}
+
+func getPlayerLosesKey(playerAddress: String) = {
+    playerAddress + "_loses"
+}
+
+func getPlayerLoses(playerAddress: String) = {
+    tryGetInteger(getPlayerLosesKey(playerAddress))
+}
+
+func getPlayerDrawsKey(playerAddress: String) = {
+    playerAddress + "_draws"
+}
+
+func getPlayerDraws(playerAddress: String) = {
+    tryGetInteger(getPlayerDrawsKey(playerAddress))
+}
+
+func getPlayerPnLKey(playerAddress: String) = {
+    playerAddress + "_PnL"
+}
+
+func getPlayerPnL(playerAddress: String) = {
+    tryGetInteger(getPlayerPnLKey(playerAddress))
+}
+
+func getGamesPlayedKey() = {
+    "gamesPlayed"
+}
+
+func getGamesPlayed() = {
+    tryGetInteger(getGamesPlayedKey())
+}
+
+# -----------------------------
+
+func getFarmingPower(address: String, assetId: String) = {
+    match getInteger(Address(farmingAddress), "address_" + address + "_asset_" + assetId + "_farmingPower") {
+        case fp:Int => fp
+        case _ => 0
+    }
+}
+
+func checkDuckOwner(ownerAddress: Address, assetId: ByteVector) = {
+    assetBalance(ownerAddress, assetId) > 0 || getFarmingPower(toBase58String(ownerAddress.bytes), toBase58String(assetId)) > 0
+}
+
+# -------
+
+let RANGES = [
+  [2, 3, 4, 5, 6, 7, 8, 9],
+  [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+  [21, 22, 23, 24, 25, 26, 27, 28, 30],
+  [31, 33, 35, 37, 40],
+  [44, 50, 57, 70, 100]
+]
+
+func getRandomRarity(random: Int, range: Int) = {
+  let randomIdx = random % size(RANGES[range - 1])
+
+  RANGES[range - 1][randomIdx]
+}
+
+# -------
+
+
+func getScore(a: Int, b: Int) = {
+    if (a > b) then 1 else if (a < b) then -1 else 0
+}
+
+func getWinner(gameId: Int, takerOrderStr: String) = {
+  let step = getStep(gameId)
+
+  if (step < 6) then {
+    let expirationHeight = getExpirationHeight(gameId)
+
+    if (step == 0) then throw("Game is not started")
+    else if (expirationHeight > height) then throw("Game is not finished or expired")
+    else if (step == 1 || step == 4) then "taker" else "maker"
+  } else {
+    let makerOrder = split(getOrder(gameId, "maker"), ",")
+    let takerOrder = split(takerOrderStr, ",")
+
+    let makerRarity1 = getRarity(gameId, "maker", makerOrder[0])
+    let makerRarity2 = getRarity(gameId, "maker", makerOrder[1])
+    let makerRarity3 = getRarity(gameId, "maker", makerOrder[2])
+    let takerRarity1 = getRarity(gameId, "taker", takerOrder[0])
+    let takerRarity2 = getRarity(gameId, "taker", takerOrder[1])
+    let takerRarity3 = getRarity(gameId, "taker", takerOrder[2])
+
+    let makerScore = getScore(makerRarity1, takerRarity1) + getScore(makerRarity2, takerRarity2) + getScore(makerRarity3, takerRarity3)
+
+    if (makerScore > 0) then "maker" else if (makerScore < 0) then "taker" else "draw"
+  }
+}
+
+func getGameResult(gameId: Int, takerOrder: String) = {
+    let bet = getBet(gameId)
+    let makerAddress = getMaker(gameId)
+    let takerAddress = getTaker(gameId)
+
+    let winner = getWinner(gameId, takerOrder)
+    let winnerAddress = if (winner == "maker") then makerAddress else if (winner == "taker") then takerAddress else ""
+    let loserAddress = if (winner == "taker") then makerAddress else if (winner == "maker") then takerAddress else ""
+
+    if (winnerAddress != "") then {
+        [
+            IntegerEntry(getPlayerCurrentGameKey(winnerAddress), 0),
+            IntegerEntry(getPlayerCurrentGameKey(loserAddress), 0),
+            IntegerEntry(getPlayerWinsKey(winnerAddress), getPlayerWins(winnerAddress) + 1),
+            IntegerEntry(getPlayerLosesKey(loserAddress), getPlayerLoses(loserAddress) + 1),
+            StringEntry(getPlayerResultKey(gameId, winnerAddress), "win"),
+            StringEntry(getPlayerResultKey(gameId, loserAddress), "lose"),
+            IntegerEntry(getPlayerPrizeKey(gameId, winnerAddress), bet),
+            IntegerEntry(getPlayerPnLKey(winnerAddress), getPlayerPnL(winnerAddress) + bet),
+            IntegerEntry(getPlayerPrizeKey(gameId, loserAddress), -bet),
+            IntegerEntry(getPlayerPnLKey(loserAddress), getPlayerPnL(loserAddress) - bet),
+            ScriptTransfer(Address(winnerAddress.fromBase58String()), bet * 2, eggsAssetId)
+        ]
+    } else {
+        [
+            IntegerEntry(getPlayerCurrentGameKey(makerAddress), 0),
+            IntegerEntry(getPlayerCurrentGameKey(takerAddress), 0),
+            IntegerEntry(getPlayerDrawsKey(makerAddress), getPlayerDraws(makerAddress) + 1),
+            IntegerEntry(getPlayerDrawsKey(takerAddress), getPlayerDraws(takerAddress) + 1),
+            StringEntry(getPlayerResultKey(gameId, makerAddress), "draw"),
+            StringEntry(getPlayerResultKey(gameId, takerAddress), "draw"),
+            IntegerEntry(getPlayerPrizeKey(gameId, makerAddress), 0),
+            IntegerEntry(getPlayerPrizeKey(gameId, takerAddress), 0),
+            ScriptTransfer(Address(makerAddress.fromBase58String()), bet, eggsAssetId),
+            ScriptTransfer(Address(takerAddress.fromBase58String()), bet, eggsAssetId)
+        ]
+    }
+}
+
+@Callable(i)
+func makeGame(slot: Int, worstRange: Int, mediumRange: Int, bestRange: Int, randomsCommit: String) = {
+  let callerAddress = toBase58String(i.caller.bytes)
+  let slotGameId = getSlot(slot)
+  let payment = i.payments[0].value()
+  let eggs = payment.amount
+  let gameId = getNextGameId()
+
+  if (getPlayerCurrentGame(callerAddress) != 0) then throw("You already have an active game")
+  else if (slot < 0 || slot >= SLOTS) then throw("Invalid slot")
+  else if (slotGameId != 0) then throw("This slot is busy")
+  else if (payment.assetId != eggsAssetId) then throw("You can attach only EGGs with the following asset id: " + eggsAssetId.toBase58String())
+  else if (eggs != 1000000) then throw("Bet must be 0.01 EGG during beta test")
+  else if (worstRange < 1 || worstRange > 5) then throw("Invalid rarity range for the worst duck")
+  else if (mediumRange < 1 || mediumRange > 5) then throw("Invalid rarity range for the medium duck")
+  else if (bestRange < 1 || bestRange > 5) then throw("Invalid rarity range for the best duck")
+  else if (mediumRange < worstRange) then throw("The medium range can't be less than the worst one")
+  else if (bestRange < mediumRange) then throw("The best range can't be worse than the medium one")
+  else {
+      [
+        IntegerEntry(getPlayerCurrentGameKey(callerAddress), gameId),
+        StringEntry(getMakerKey(gameId), callerAddress),
+        StringEntry(getPlayerRoleKey(gameId, callerAddress), "maker"),
+        IntegerEntry(getBetKey(gameId), eggs),
+        IntegerEntry(getRangeKey(gameId, "worst"), worstRange),
+        IntegerEntry(getRangeKey(gameId, "medium"), mediumRange),
+        IntegerEntry(getRangeKey(gameId, "best"), bestRange),
+        StringEntry(getMakerRandomsCommitKey(gameId), randomsCommit),
+        IntegerEntry(getWaitingExpirationHeightKey(gameId), height + WAITING),
+        IntegerEntry(getSlotKey(slot), gameId),
+        IntegerEntry("nextGameId", gameId + 1)
+      ]
+  }
+}
+
+@Callable(i)
+func takeGame(slot: Int, randoms: String, skipReplace: Boolean) = {
+    let callerAddress = toBase58String(i.caller.bytes)
+    let gameId = getSlot(slot)
+    let payment = i.payments[0].value()
+
+    if (getPlayerCurrentGame(callerAddress) != 0) then throw("You already have an active game")
+    else if (slot < 0 || slot >= SLOTS) then throw("Invalid slot")
+    else if (getSlot(slot) == 0) then throw("This slot is empty")
+    else if (payment.assetId != eggsAssetId) then throw("You can attach only EGG tokens with the following asset id: " + eggsAssetId.toBase58String())
+    else if (payment.amount != getBet(gameId)) then throw("Insufficient eggs amount")
+    else if (getWaitingExpirationHeight(gameId) <= height) then throw("This game is expired")
+    else {
+        [
+            IntegerEntry(getPlayerCurrentGameKey(callerAddress), gameId),
+            StringEntry(getTakerKey(gameId), callerAddress),
+            StringEntry(getPlayerRoleKey(gameId, callerAddress), "taker"),
+            StringEntry(getPlayerRoleKey(gameId, callerAddress), "taker"),
+            StringEntry(getRandomsKey(gameId, "taker"), randoms),
+            BooleanEntry(getTakerSkipReplaceKey(gameId), skipReplace),
+            IntegerEntry(getStepKey(gameId), 1),
+            IntegerEntry(getExpirationHeightKey(gameId), height + stepDuration),
+            IntegerEntry(getSlotKey(slot), 0),
+            IntegerEntry("gamesPlayed", getGamesPlayed() + 1)
+        ]
+    }
+}
+
+@Callable(i)
+func kickGame(slot: Int) = {
+    let callerAddress = toBase58String(i.caller.bytes)
+    let gameId = getSlot(slot)
+    let maker = getMaker(gameId)
+
+    if (slot < 0 || slot >= SLOTS) then throw("Invalid slot")
+    else if (gameId == 0) then throw("Slot is empty")
+    else if (callerAddress != maker && getWaitingExpirationHeight(gameId) > height) then throw("Waiting is not finished yet")
+    else {
+        [
+            IntegerEntry(getPlayerCurrentGameKey(maker), 0),
+            IntegerEntry(getSlotKey(slot), 0),
+            ScriptTransfer(Address(maker.fromBase58String()), getBet(gameId), eggsAssetId)
+        ]
+    }
+}
+
+
+@Callable(i)
+func revealRandomsAndReplaceOneDuckMaker(makerRandomsStr: String, salt: String, rangeToReplace: String, duckId: String) = {
+    let callerAddress = toBase58String(i.caller.bytes)
+    let gameId = getPlayerCurrentGame(callerAddress)
+    let playerRole = getPlayerRole(gameId, callerAddress)
+    let step = getStep(gameId)
+
+    let makerRandomsCommit = split(getMakerRandomsCommit(gameId), ",")
+    let makerRandoms = split(makerRandomsStr, ",")
+    let takerRandoms = split(getRandoms(gameId, "taker"), ",")
+
+    let rarityToReplace = if (rangeToReplace == "worst" || rangeToReplace == "medium" || rangeToReplace == "best") then {
+      strict invokeRes = invoke(Address(rarityProviderAddress), "getAssetRarity", [duckId], [])
+      let rarity = match invokeRes {
+          case r : Int => r
+          case _ => throw("Incorrect invoke result")
+      }
+
+      let range = getRange(gameId, rangeToReplace)
+
+      if (!checkDuckOwner(i.caller, duckId.fromBase58String())) then throw("Asset " + duckId + " doesn't belong to you")
+      else if (range < 5 && (rarity > range * 10 || rarity <= (range - 1) * 10)) then throw("Duck doesn't fit rarity range")
+      else if (range == 5 && rarity <= 40) then throw("Duck doesn't fit rarity range")
+      else rarity
+    } else {
+      0
+    }
+
+    let worstRange = getRange(gameId, "worst")
+    let mediumRange = getRange(gameId, "medium")
+    let bestRange = getRange(gameId, "best")
+
+    let worstRarityMaker = if (rangeToReplace == "worst") then rarityToReplace else getRandomRarity(parseIntValue(makerRandoms[0]) + parseIntValue(takerRandoms[0]), worstRange)
+    let mediumRarityMaker = if (rangeToReplace == "medium") then rarityToReplace else getRandomRarity(parseIntValue(makerRandoms[1]) + parseIntValue(takerRandoms[1]), mediumRange)
+    let bestRarityMaker = if (rangeToReplace == "best") then rarityToReplace else getRandomRarity(parseIntValue(makerRandoms[2]) + parseIntValue(takerRandoms[2]), bestRange)
+
+    let worstRarityTaker = getRandomRarity(parseIntValue(makerRandoms[3]) + parseIntValue(takerRandoms[3]), worstRange)
+    let mediumRarityTaker = getRandomRarity(parseIntValue(makerRandoms[4]) + parseIntValue(takerRandoms[4]), mediumRange)
+    let bestRarityTaker = getRandomRarity(parseIntValue(makerRandoms[5]) + parseIntValue(takerRandoms[5]), bestRange)
+
+    let nextStep = if (getTakerSkipReplace(gameId)) then step + 2 else step + 1
+
+    if (gameId == 0) then throw("You don't have an active game")
+    else if (step < 1) then throw("Game is not started")
+    else if (playerRole != "maker") then throw("Only maker can call this method")
+    else if (step > 1) then throw("This step is finished")
+    else if (toBase58String(sha256(toBytes(makerRandoms[0] + salt))) != makerRandomsCommit[0]) then throw("Random 1 doesn't match it's hash")
+    else if (toBase58String(sha256(toBytes(makerRandoms[1] + salt))) != makerRandomsCommit[1]) then throw("Random 2 doesn't match it's hash")
+    else if (toBase58String(sha256(toBytes(makerRandoms[2] + salt))) != makerRandomsCommit[2]) then throw("Random 3 doesn't match it's hash")
+    else if (toBase58String(sha256(toBytes(makerRandoms[3] + salt))) != makerRandomsCommit[3]) then throw("Random 4 doesn't match it's hash")
+    else if (toBase58String(sha256(toBytes(makerRandoms[4] + salt))) != makerRandomsCommit[4]) then throw("Random 5 doesn't match it's hash")
+    else if (toBase58String(sha256(toBytes(makerRandoms[5] + salt))) != makerRandomsCommit[5]) then throw("Random 6 doesn't match it's hash")
+    else {
+        [
+            StringEntry(getRandomsKey(gameId, "maker"), makerRandomsStr),
+            IntegerEntry(getRarityKey(gameId, "maker", "worst"), worstRarityMaker),
+            IntegerEntry(getRarityKey(gameId, "maker", "medium"), mediumRarityMaker),
+            IntegerEntry(getRarityKey(gameId, "maker", "best"), bestRarityMaker),
+            StringEntry(getReplacedRangeKey(gameId, "maker"), rangeToReplace),
+            StringEntry(getDuckIdKey(gameId, "maker"), duckId),
+            IntegerEntry(getRarityKey(gameId, "taker", "worst"), worstRarityTaker),
+            IntegerEntry(getRarityKey(gameId, "taker", "medium"), mediumRarityTaker),
+            IntegerEntry(getRarityKey(gameId, "taker", "best"), bestRarityTaker),
+            IntegerEntry(getStepKey(gameId), nextStep),
+            IntegerEntry(getExpirationHeightKey(gameId), height + stepDuration)
+        ]
+    }
+}
+
+
+@Callable(i)
+func replaceOneDuckTaker(rangeToReplace: String, duckId: String) = {
+    let callerAddress = toBase58String(i.caller.bytes)
+    let gameId = getPlayerCurrentGame(callerAddress)
+    let playerRole = getPlayerRole(gameId, callerAddress)
+    let step = getStep(gameId)
+    let range = getRange(gameId, rangeToReplace)
+
+
+    strict invokeRes = invoke(Address(rarityProviderAddress), "getAssetRarity", [duckId], [])
+    let rarity = match invokeRes {
+        case r : Int => r
+        case _ => throw("Incorrect invoke result")
+    }
+
+    if (gameId == 0) then throw("You don't have an active game")
+    else if (getExpirationHeight(gameId) == 0) then throw("Game is not started")
+    else if (step < 2) then throw("This step is not started")
+    else if (playerRole != "taker") then throw("Only taker can call this method")
+    else if (step > 2) then throw("This step is finished")
+    else if (!checkDuckOwner(i.caller, duckId.fromBase58String())) then throw("Asset " + duckId + " doesn't belong to you")
+    else if (range < 5 && (rarity > range * 10 || rarity <= (range - 1) * 10)) then throw("Duck doesn't fit rarity range")
+    else if (range == 5 && rarity <= 40) then throw("Duck doesn't fit rarity range")
+    else {
+        [
+            IntegerEntry(getRarityKey(gameId, playerRole, rangeToReplace), rarity),
+            StringEntry(getReplacedRangeKey(gameId, playerRole), rangeToReplace),
+            StringEntry(getDuckIdKey(gameId, playerRole), duckId),
+            IntegerEntry(getStepKey(gameId), step + 1),
+            IntegerEntry(getExpirationHeightKey(gameId), height + stepDuration)
+        ]
+    }
+}
+
+@Callable(i)
+func commitOrderTaker(orderCommit: String) = {
+    let callerAddress = toBase58String(i.caller.bytes)
+    let gameId = getPlayerCurrentGame(callerAddress)
+    let playerRole = getPlayerRole(gameId, callerAddress)
+    let step = getStep(gameId)
+
+    if (gameId == 0) then throw("You don't have an active game")
+    else if (step < 3) then throw("Commit is not started")
+    else if (playerRole != "taker") then throw("Only taker can call this method")
+    else if (step > 3) then throw("Commit is finished")
+    else {
+      [
+          StringEntry(getTakerOrderCommitKey(gameId), orderCommit),
+          IntegerEntry(getStepKey(gameId), step + 1),
+          IntegerEntry(getExpirationHeightKey(gameId), height + stepDuration)
+      ]
+    }
+}
+
+@Callable(i)
+func setOrderMaker(order: String, salt: String) = {
+    let callerAddress = toBase58String(i.caller.bytes)
+    let gameId = getPlayerCurrentGame(callerAddress)
+    let playerRole = getPlayerRole(gameId, callerAddress)
+    let step = getStep(gameId)
+
+    if (gameId == 0) then throw("You don't have an active game")
+    else if (step < 4) then throw("This step is not started")
+    else if (playerRole != "maker") then throw("It is the maker's turn to pick now")
+    else if (step > 4) then throw("This step is finished")
+    else if(order != "worst,medium,best" && order != "worst,best,medium" && order != "medium,worst,best" && order != "medium,best,worst" && order != "best,worst,medium" && order != "best,medium,worst") then throw("Reveal data is not valid")
+    else {
+      [
+          StringEntry(getOrderKey(gameId, playerRole), order),
+          IntegerEntry(getStepKey(gameId), step + 1),
+          IntegerEntry(getExpirationHeightKey(gameId), height + stepDuration)
+      ]
+    }
+}
+
+@Callable(i)
+func revealOrderTaker(order: String, salt: String) = {
+    let callerAddress = toBase58String(i.caller.bytes)
+    let gameId = getPlayerCurrentGame(callerAddress)
+    let playerRole = getPlayerRole(gameId, callerAddress)
+    let step = getStep(gameId)
+    let winner = getWinner(gameId, order)
+
+    if (gameId == 0) then throw("You don't have an active game")
+    else if (step < 5) then throw("This step is not started")
+    else if (playerRole != "taker") then throw("It is the taker's turn to pick now")
+    else if (step > 5) then throw("This step is finished")
+    else if(order != "worst,medium,best" && order != "worst,best,medium" && order != "medium,worst,best" && order != "medium,best,worst" && order != "best,worst,medium" && order != "best,medium,worst") then throw("Reveal data is not valid")
+    else if (toBase58String(sha256(toBytes(order + salt))) != getTakerOrderCommit(gameId)) then throw("Reveal doesn't match commit")
+    else {
+      getGameResult(gameId, order) ++ [
+        StringEntry(getOrderKey(gameId, playerRole), order),
+        IntegerEntry(getStepKey(gameId), step + 1)
+      ]
+    }
+}
+
+@Callable(i)
+func getPrizeExpired() = {
+    let callerAddress = toBase58String(i.caller.bytes)
+    let gameId = getPlayerCurrentGame(callerAddress)
+
+    if (gameId == 0) then throw("You don't have an active game")
+    else {
+        getGameResult(gameId, "")
+    }
+
+}
+
+@Verifier(tx)
+func verify() = sigVerify(tx.bodyBytes, tx.proofs[0], tx.senderPublicKey)

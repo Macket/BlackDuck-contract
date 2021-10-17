@@ -1,9 +1,9 @@
 import { assert } from 'chai';
 import { address, TEST_NET_CHAIN_ID } from '@waves/ts-lib-crypto';
 import { invokeScript } from "@waves/waves-transactions";
-import { broadcastTx } from "../src/sdk/utils";
-import { pickDucksTx, wrongPickDucksTx } from "../src/sdk/gameTransactions";
-import { getPlayerCurrentGame, getBlockHeight, getRarity, getStep, getExpirationHeight } from "../src/sdk/gameData";
+import { broadcastTx } from "../../src/sdk/utils";
+import { pickDucksTx, wrongPickDucksTx } from "../../src/sdk/gameTransactions";
+import { getPlayerCurrentGame, getBlockHeight, getRarity, getStep, getExpirationHeight } from "../../src/sdk/gameData";
 import {
     MAKER_SEED,
     TAKER_SEED,
@@ -19,7 +19,7 @@ import {
     IMPOSTOR_WORST_DUCK,
     IMPOSTOR_MEDIUM_DUCK,
     IMPOSTOR_BEST_DUCK,
-} from "../src/settings";
+} from "../../src/settings";
 
 describe('Pick Ducks', function() {
     this.timeout(120000);

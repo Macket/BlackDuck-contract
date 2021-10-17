@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
-import {broadcastTx, generateCommit} from "../src/sdk/utils";
+import {broadcastTx, generateCommit} from "../../src/sdk/utils";
 import {
     commitTx,
     getPrizeTx,
@@ -10,7 +10,7 @@ import {
     revealTx,
     takeGameTx,
     wrongPickDucksTx
-} from "../src/sdk/gameTransactions";
+} from "../../src/sdk/gameTransactions";
 import {
     getNextGameId,
     getBlockHeight,
@@ -29,10 +29,11 @@ import {
     getGamesPlayed,
     getDuckOrder,
     getEggBalance,
-    getPlayerDraws,
+    getPlayerWins,
+    getPlayerLoses,
     getGameResult,
     getGamePrize,
-} from "../src/sdk/gameData";
+} from "../../src/sdk/gameData";
 import {
     MAKER_SEED,
     IMPOSTOR_SEED,
@@ -51,9 +52,9 @@ import {
     IMPOSTOR_WORST_DUCK,
     IMPOSTOR_MEDIUM_DUCK,
     IMPOSTOR_BEST_DUCK,
-} from "../src/settings";
+} from "../../src/settings";
 
-describe('Draw test', function() {
+describe('Basic test', function() {
     this.timeout(120000);
     const EGGs = 1;
 
@@ -397,14 +398,14 @@ describe('Draw test', function() {
 
         assert.equal(gameStepBefore, 3);
 
-        await broadcastTx(invokeScript(commitTx('worst,best,medium', MAKER_SALT), MAKER_SEED));
+        await broadcastTx(invokeScript(commitTx('best,medium,worst', MAKER_SALT), MAKER_SEED));
 
         const gameStepAfter = await getStep(gameId);
         const makerCommit = await getCommit(gameId, "maker");
         const expirationHeight = await getExpirationHeight(gameId);
 
         assert.equal(gameStepAfter, 4);
-        assert.equal(makerCommit, generateCommit('worst,best,medium', MAKER_SALT));
+        assert.equal(makerCommit, generateCommit('best,medium,worst', MAKER_SALT));
         assert.approximately(expirationHeight, height + STEP_DURATION, 1);
     });
 
@@ -487,14 +488,14 @@ describe('Draw test', function() {
 
         assert.equal(gameStepBefore, 5);
 
-        await broadcastTx(invokeScript(revealTx('worst,best,medium', MAKER_SALT), MAKER_SEED));
+        await broadcastTx(invokeScript(revealTx('best,medium,worst', MAKER_SALT), MAKER_SEED));
 
         const gameStepAfter = await getStep(gameId);
         const makerDuckOrder = await getDuckOrder(gameId, "maker");
         const expirationHeight = await getExpirationHeight(gameId);
 
         assert.equal(gameStepAfter, 6);
-        assert.equal(makerDuckOrder, 'worst,best,medium');
+        assert.equal(makerDuckOrder, 'best,medium,worst');
         assert.approximately(expirationHeight, height + STEP_DURATION, 1);
     });
 
@@ -516,30 +517,23 @@ describe('Draw test', function() {
         }
     });
 
-    it('Maker gets EGGs back', async function () {
+    it('Loser leaves the game', async function () {
         const makerAddress = address(MAKER_SEED, TEST_NET_CHAIN_ID);
-        const gameId = await getPlayerCurrentGame(makerAddress);
-        const betEggs = await getBetEggs(gameId);
         const eggBalanceBefore = await getEggBalance(makerAddress);
-        const drawsBefore = await getPlayerDraws(makerAddress);
+        const losesBefore = await getPlayerLoses(makerAddress);
 
         await broadcastTx(invokeScript(getPrizeTx(), MAKER_SEED));
 
         const currentMakerGame = await getPlayerCurrentGame(makerAddress);
         const eggBalanceAfter = await getEggBalance(makerAddress);
-        const drawsAfter = await getPlayerDraws(makerAddress);
-        const makerResult = await getGameResult(gameId, makerAddress);
-        const makerPrize = await getGamePrize(gameId, makerAddress);
-
+        const losesAfter = await getPlayerLoses(makerAddress);
 
         assert.equal(currentMakerGame, 0);
-        assert.equal(eggBalanceAfter - eggBalanceBefore, betEggs);
-        assert.equal(drawsBefore + 1, drawsAfter);
-        assert.equal(makerResult, "draw");
-        assert.equal(makerPrize, 0);
+        assert.equal(eggBalanceAfter, eggBalanceBefore);
+        assert.equal(losesBefore, losesAfter);
     });
 
-    it("Maker can't get EGGs back twice", async function () {
+    it("Loser can't leave game twice", async function () {
         try {
             await broadcastTx(invokeScript(getPrizeTx(), MAKER_SEED));
         } catch (err) {
@@ -547,29 +541,39 @@ describe('Draw test', function() {
         }
     });
 
-    it('Taker gets EGGs back', async function () {
+    it('Winner gets prize', async function () {
         const takerAddress = address(TAKER_SEED, TEST_NET_CHAIN_ID);
+        const makerAddress = address(MAKER_SEED, TEST_NET_CHAIN_ID);
         const gameId = await getPlayerCurrentGame(takerAddress);
         const betEggs = await getBetEggs(gameId);
         const eggBalanceBefore = await getEggBalance(takerAddress);
-        const drawsBefore = await getPlayerDraws(takerAddress);
+        const winsBefore = await getPlayerWins(takerAddress);
+        const losesBefore = await getPlayerLoses(makerAddress);
 
         await broadcastTx(invokeScript(getPrizeTx(), TAKER_SEED));
 
         const currentTakerGame = await getPlayerCurrentGame(takerAddress);
+        const currentMakerGame = await getPlayerCurrentGame(makerAddress);
         const eggBalanceAfter = await getEggBalance(takerAddress);
-        const drawsAfter = await getPlayerDraws(takerAddress);
+        const winsAfter = await getPlayerWins(takerAddress);
+        const losesAfter = await getPlayerLoses(makerAddress);
+        const makerResult = await getGameResult(gameId, makerAddress);
+        const makerPrize = await getGamePrize(gameId, makerAddress);
         const takerResult = await getGameResult(gameId, takerAddress);
         const takerPrize = await getGamePrize(gameId, takerAddress);
 
         assert.equal(currentTakerGame, 0);
-        assert.equal(eggBalanceAfter - eggBalanceBefore, betEggs);
-        assert.equal(drawsBefore + 1, drawsAfter);
-        assert.equal(takerResult, "draw");
-        assert.equal(takerPrize, 0);
+        assert.equal(currentMakerGame, 0);
+        assert.equal(eggBalanceAfter - eggBalanceBefore, betEggs * 2);
+        assert.equal(winsBefore + 1, winsAfter);
+        assert.equal(losesBefore + 1, losesAfter);
+        assert.equal(takerResult, "win");
+        assert.equal(takerPrize, betEggs);
+        assert.equal(makerResult, "lose");
+        assert.equal(makerPrize, -betEggs);
     });
 
-    it("Taker can't get EGGs back twice", async function () {
+    it("Winner can't get prize twice", async function () {
         try {
             await broadcastTx(invokeScript(getPrizeTx(), TAKER_SEED));
         } catch (err) {

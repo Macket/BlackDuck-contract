@@ -1,15 +1,15 @@
 import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
-import { broadcastTx } from "../src/sdk/utils";
-import {commitTx, pickDucksTx} from "../src/sdk/gameTransactions";
+import { broadcastTx } from "../../src/sdk/utils";
+import {commitTx, pickDucksTx} from "../../src/sdk/gameTransactions";
 import {
     getPlayerCurrentGame,
     getCommit,
     getStep,
     getBlockHeight,
     getExpirationHeight,
-} from "../src/sdk/gameData";
+} from "../../src/sdk/gameData";
 import {
     MAKER_SEED,
     TAKER_SEED,
@@ -17,8 +17,8 @@ import {
     MAKER_SALT,
     TAKER_SALT,
     STEP_DURATION,
-} from "../src/settings";
-import { generateCommit } from '../src/sdk/utils';
+} from "../../src/settings";
+import { generateCommit } from '../../src/sdk/utils';
 
 describe('Commit', function() {
     this.timeout(120000);

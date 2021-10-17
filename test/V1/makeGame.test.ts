@@ -1,8 +1,8 @@
 import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
-import { broadcastTx } from "../src/sdk/utils";
-import { makeGameTx } from "../src/sdk/gameTransactions";
+import { broadcastTx } from "../../src/sdk/utils";
+import { makeGameTx } from "../../src/sdk/gameTransactions";
 import {
     getNextGameId,
     getBlockHeight,
@@ -13,8 +13,8 @@ import {
     getRarityRange,
     getSlot,
     getWaitingExpirationHeight,
-} from "../src/sdk/gameData";
-import { MAKER_SEED, IMPOSTOR_SEED, WAITING } from "../src/settings";
+} from "../../src/sdk/gameData";
+import { MAKER_SEED, IMPOSTOR_SEED, WAITING } from "../../src/settings";
 
 describe('Make Game', function() {
     this.timeout(120000);

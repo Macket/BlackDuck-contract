@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
-import {broadcastTx, generateCommit} from "../src/sdk/utils";
+import {broadcastTx, generateCommit} from "../../src/sdk/utils";
 import {
     commitTx,
     getPrizeTx,
@@ -10,7 +10,7 @@ import {
     revealTx,
     takeGameTx,
     wrongPickDucksTx
-} from "../src/sdk/gameTransactions";
+} from "../../src/sdk/gameTransactions";
 import {
     getNextGameId,
     getBlockHeight,
@@ -31,7 +31,7 @@ import {
     getEggBalance,
     getPlayerWins,
     getPlayerLoses, getGameResult, getGamePrize,
-} from "../src/sdk/gameData";
+} from "../../src/sdk/gameData";
 import {
     MAKER_SEED,
     IMPOSTOR_SEED,
@@ -54,7 +54,7 @@ import {
     IMPOSTOR_MEDIUM_DUCK,
     IMPOSTOR_MEDIUM_DUCK2,
     IMPOSTOR_BEST_DUCK,
-} from "../src/settings";
+} from "../../src/settings";
 
 describe('One range test', function() {
     this.timeout(120000);

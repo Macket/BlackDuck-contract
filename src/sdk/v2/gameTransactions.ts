@@ -29,19 +29,7 @@ export const makeGameTx = (
     chainId: CHAIN_ID,
 });
 
-export const kickGameTx = (slot: number): IInvokeScriptParams => ({
-    dApp: GAME_ADDRESS,
-    fee: 500000,
-    call: {
-        function: "kickGame",
-        args: [
-            { type: 'integer', value: slot },
-        ],
-    },
-    chainId: CHAIN_ID,
-});
-
-export const takeGameTx = (slot: number, randoms: string, skipReplace: boolean, eggs: number): IInvokeScriptParams => ({
+export const takeGameTx = (slot: number, randoms: string, skipReplace: boolean, eggs: number, assetId = EGG_ID): IInvokeScriptParams => ({
     dApp: GAME_ADDRESS,
     fee: 500000,
     call: {
@@ -53,9 +41,21 @@ export const takeGameTx = (slot: number, randoms: string, skipReplace: boolean, 
         ],
     },
     payment: [{
-        assetId: EGG_ID,
+        assetId: assetId,
         amount: eggs,
     }],
+    chainId: CHAIN_ID,
+});
+
+export const kickGameTx = (slot: number): IInvokeScriptParams => ({
+    dApp: GAME_ADDRESS,
+    fee: 500000,
+    call: {
+        function: "kickGame",
+        args: [
+            { type: 'integer', value: slot },
+        ],
+    },
     chainId: CHAIN_ID,
 });
 

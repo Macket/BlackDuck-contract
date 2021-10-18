@@ -7,3 +7,8 @@ export const broadcastTx = async (tx): Promise<void> => {
 };
 
 export const generateCommit = (secret: string, salt: string): string => base58Encode(sha256(stringToBytes(secret + salt)));
+
+export const arrayItemAt = (arr: any[], index: number) => {
+    const _index = index % arr.length;
+    return arr.slice(_index, _index + 1)[0];
+}

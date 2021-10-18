@@ -1,10 +1,19 @@
 import axios from 'axios';
-import { GAME_ADDRESS, FARMING_ADDRESS, EGG_ID, WAVES_NODE } from "../../settings";
+import {GAME_ADDRESS, FARMING_ADDRESS, EGG_ID, WAVES_NODE, RARITY_PROVIDER_ADDRESS} from "../../settings";
 
 
 export const getEggBalance = async (address: string): Promise<number> => {
     const res = await axios.get(WAVES_NODE + `/assets/balance/${address}/${EGG_ID}`);
     return res.data.balance;
+};
+
+export const calcRarity = async (assetId: string): Promise<number> => {
+    return (await axios.post(
+        `https://nodes-testnet.wavesnodes.com/utils/script/evaluate/${RARITY_PROVIDER_ADDRESS}`,
+        {
+            "expr": `getAssetRarity(\"${assetId}\")`
+        },
+    )).data.result.value._2.value;
 };
 
 export const getData = async (regExp): Promise<{ key: string, type: string, value: string | number | boolean }[]> => {

@@ -19,7 +19,7 @@ import { MAKER_SEED, IMPOSTOR_SEED, WAITING, MAKER_RANDOMS, MAKER_SALT, EGG_ID, 
 
 describe('Make Game', function() {
     this.timeout(120000);
-    const BET = 1000000;
+    const BET = 10000;
 
     it('Invalid slot revert', async function () {
         try {
@@ -47,7 +47,7 @@ describe('Make Game', function() {
                 makeGameTx( 0, 1, 2, 3, generateCommit(MAKER_RANDOMS, MAKER_SALT), BET + 1), MAKER_SEED)
             );
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], "Bet must be 0.01 EGG during beta test")
+            assert.strictEqual(err.message.split(': ')[1], "Bet must be 0.0001 EGG during beta test")
         }
     });
 

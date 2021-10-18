@@ -59,11 +59,11 @@ export const kickGameTx = (slot: number): IInvokeScriptParams => ({
     chainId: CHAIN_ID,
 });
 
-export const revealRandomsAndReplaceOneDuckMakerTx = (makerRandoms: string, salt: string, rangeToReplace: string, duckId: string): IInvokeScriptParams => ({
+export const revealRandomsAndReplaceMakerTx = (makerRandoms: string, salt: string, rangeToReplace: string, duckId: string): IInvokeScriptParams => ({
     dApp: GAME_ADDRESS,
     fee: 500000,
     call: {
-        function: "revealRandomsAndReplaceOneDuckMaker",
+        function: "revealRandomsAndReplaceMaker",
         args: [
             { type: "string", value: makerRandoms },
             { type: "string", value: salt },
@@ -74,11 +74,11 @@ export const revealRandomsAndReplaceOneDuckMakerTx = (makerRandoms: string, salt
     chainId: CHAIN_ID,
 });
 
-export const replaceOneDuckTakerTx = (rangeToReplace: String, duckId: String): IInvokeScriptParams => ({
+export const replaceTakerTx = (rangeToReplace: String, duckId: String): IInvokeScriptParams => ({
     dApp: GAME_ADDRESS,
     fee: 500000,
     call: {
-        function: "replaceOneDuckTaker",
+        function: "replaceTaker",
         args: [
             { type: "string", value: rangeToReplace },
             { type: "string", value: duckId },

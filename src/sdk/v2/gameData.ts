@@ -98,6 +98,14 @@ export const getRarity = async (gameId: number, playerRole: 'maker' | 'taker', r
     return (await getData('game' + gameId.toString() + "_" + playerRole + "_" + rangePosition + "Rarity"))[0].value as number;
 }
 
+export const getDuckId = async (gameId: number, playerRole: string): Promise<string> => {
+    return (await getData('game' + gameId.toString() + "_" + playerRole + "_duckId"))[0].value as string;
+}
+
+export const getReplacedRange = async (gameId: number, playerRole: string): Promise<string> => {
+    return (await getData('game' + gameId.toString() + "_" + playerRole + "_replacedRange"))[0].value as string;
+}
+
 export const getTakerOrderCommit = async (gameId: number): Promise<string> => {
     return (await getData('game' + gameId.toString() + "_taker_orderCommit"))[0].value as string;
 }

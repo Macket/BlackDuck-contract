@@ -29,14 +29,30 @@ export const makeGameTx = (
     chainId: CHAIN_ID,
 });
 
-export const takeGameTx = (slot: number, randoms: string, skipReplace: boolean, eggs: number, assetId = EGG_ID): IInvokeScriptParams => ({
+export const takeGameTx = (
+    slot: number,
+    random1: number,
+    random2: number,
+    random3: number,
+    random4: number,
+    random5: number,
+    random6: number,
+    skipReplace: boolean,
+    eggs: number,
+    assetId = EGG_ID
+): IInvokeScriptParams => ({
     dApp: GAME_ADDRESS,
     fee: 500000,
     call: {
         function: "takeGame",
         args: [
             { type: 'integer', value: slot },
-            { type: 'string', value: randoms },
+            { type: 'integer', value: random1 },
+            { type: 'integer', value: random2 },
+            { type: 'integer', value: random3 },
+            { type: 'integer', value: random4 },
+            { type: 'integer', value: random5 },
+            { type: 'integer', value: random6 },
             { type: 'boolean', value: skipReplace },
         ],
     },
@@ -59,13 +75,28 @@ export const kickGameTx = (slot: number): IInvokeScriptParams => ({
     chainId: CHAIN_ID,
 });
 
-export const revealRandomsAndReplaceMakerTx = (makerRandoms: string, salt: string, rangeToReplace: string, duckId: string): IInvokeScriptParams => ({
+export const revealRandomsAndReplaceMakerTx = (
+    random1: number,
+    random2: number,
+    random3: number,
+    random4: number,
+    random5: number,
+    random6: number,
+    salt: string,
+    rangeToReplace: string,
+    duckId: string
+): IInvokeScriptParams => ({
     dApp: GAME_ADDRESS,
     fee: 500000,
     call: {
         function: "revealRandomsAndReplaceMaker",
         args: [
-            { type: "string", value: makerRandoms },
+            { type: 'integer', value: random1 },
+            { type: 'integer', value: random2 },
+            { type: 'integer', value: random3 },
+            { type: 'integer', value: random4 },
+            { type: 'integer', value: random5 },
+            { type: 'integer', value: random6 },
             { type: "string", value: salt },
             { type: "string", value: rangeToReplace },
             { type: "string", value: duckId },

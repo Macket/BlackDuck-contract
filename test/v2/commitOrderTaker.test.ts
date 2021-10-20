@@ -20,12 +20,12 @@ import {
 } from "../../src/settings";
 import { generateCommit } from '../../src/sdk/utils';
 
-describe('Commit', function() {
+describe('Commit Order Taker', function() {
     this.timeout(120000);
 
     it("Impostor can't commit", async function () {
         try {
-            await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst,medium,best', MAKER_SALT)), IMPOSTOR_SEED));
+            await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst|medium|best', MAKER_SALT)), IMPOSTOR_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
         }
@@ -33,7 +33,7 @@ describe('Commit', function() {
 
     it("Maker can't commit", async function () {
         try {
-            await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst,medium,best', MAKER_SALT)), MAKER_SEED));
+            await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst|medium|best', MAKER_SALT)), MAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
         }
@@ -47,20 +47,20 @@ describe('Commit', function() {
 
         assert.equal(gameStepBefore, 3);
 
-        await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst,medium,best', TAKER_SALT)), TAKER_SEED));
+        await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst|medium|best', TAKER_SALT)), TAKER_SEED));
 
         const gameStepAfter = await getStep(gameId);
         const takerCommit = await getTakerOrderCommit(gameId);
         const expirationHeight = await getExpirationHeight(gameId);
 
-        assert.equal(gameStepAfter, 3);
-        assert.equal(takerCommit, generateCommit('worst,medium,best', TAKER_SALT));
-        assert.equal(expirationHeight, height + STEP_DURATION);
+        assert.equal(gameStepAfter, 4);
+        assert.equal(takerCommit, generateCommit('worst|medium|best', TAKER_SALT));
+        assert.approximately(expirationHeight, height + STEP_DURATION, 1);
     });
 
     it("Taker can't commit again", async function () {
         try {
-            await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst,medium,best', TAKER_SALT)), TAKER_SEED));
+            await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst|medium|best', TAKER_SALT)), TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "This step is finished");
         }

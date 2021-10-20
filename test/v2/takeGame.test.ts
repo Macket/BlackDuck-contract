@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
-import {broadcastTx, generateCommit} from "../../src/sdk/utils";
+import {broadcastTx} from "../../src/sdk/utils";
 import {takeGameTx} from "../../src/sdk/v2/gameTransactions";
 import {
     getBlockHeight,
@@ -21,13 +21,12 @@ import {
     STEP_DURATION,
     TAKER_RANDOMS,
     WRONG_ASSET_ID,
-    MAKER_RANDOMS,
-    MAKER_SALT,
-    MAKER_SEED, EGG_ID
+    EGG_ID,
 } from "../../src/settings";
 
 describe('Take Game', function() {
     this.timeout(120000);
+    const takerRandoms: number[] = TAKER_RANDOMS.split("|").map(Number);
     let gameId = -1;
     let bet = 0;
 
@@ -39,7 +38,17 @@ describe('Take Game', function() {
 
     it('Invalid slot revert', async function () {
         try {
-            await broadcastTx(invokeScript(takeGameTx( 11, TAKER_RANDOMS, true, bet), TAKER_SEED));
+            await broadcastTx(invokeScript(takeGameTx(
+                11,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], 'Invalid slot')
         }
@@ -47,7 +56,18 @@ describe('Take Game', function() {
 
     it('Invalid bet asset revert', async function () {
         try {
-            await broadcastTx(invokeScript(takeGameTx( 0, TAKER_RANDOMS, true, 1, WRONG_ASSET_ID), TAKER_SEED));
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                1,
+                WRONG_ASSET_ID),
+                TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "You can attach only EGGs with the following asset id - " + EGG_ID)
         }
@@ -55,7 +75,17 @@ describe('Take Game', function() {
 
     it("Can't take game from empty slot", async function () {
         try {
-            await broadcastTx(invokeScript(takeGameTx( 9, TAKER_RANDOMS, true, bet), TAKER_SEED));
+            await broadcastTx(invokeScript(takeGameTx(
+                9,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], 'This slot is empty')
         }
@@ -63,7 +93,17 @@ describe('Take Game', function() {
 
     it('Not enough EGGs', async function () {
         try {
-            await broadcastTx(invokeScript(takeGameTx( 0, TAKER_RANDOMS, true, bet - 1), TAKER_SEED));
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet - 1),
+                TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], 'Insufficient eggs amount')
         }
@@ -71,9 +111,235 @@ describe('Take Game', function() {
 
     it('Too much EGGs', async function () {
         try {
-            await broadcastTx(invokeScript(takeGameTx( 0, TAKER_RANDOMS, true, bet + 1), TAKER_SEED));
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet + 1),
+                TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], 'Insufficient eggs amount')
+        }
+    });
+
+    it('Invalid random1 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                -1,
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random1')
+        }
+    });
+
+    it('Invalid random1 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                1000000000001,
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random1')
+        }
+    });
+
+    it('Invalid random2 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                -1,
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random2')
+        }
+    });
+
+    it('Invalid random2 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                1000000000001,
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random2')
+        }
+    });
+
+    it('Invalid random3 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                -1,
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random3')
+        }
+    });
+
+    it('Invalid random3 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                1000000000001,
+                takerRandoms[3],
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random3')
+        }
+    });
+
+    it('Invalid random4 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                -1,
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random4')
+        }
+    });
+
+    it('Invalid random3 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                1000000000001,
+                takerRandoms[4],
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random4')
+        }
+    });
+
+    it('Invalid random5 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                -1,
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random5')
+        }
+    });
+
+    it('Invalid random5 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                1000000000001,
+                takerRandoms[5],
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random5')
+        }
+    });
+
+    it('Invalid random6 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                -1,
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random6')
+        }
+    });
+
+    it('Invalid random6 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(takeGameTx(
+                0,
+                takerRandoms[0],
+                takerRandoms[1],
+                takerRandoms[2],
+                takerRandoms[3],
+                takerRandoms[4],
+                1000000000001,
+                false,
+                bet),
+                TAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random6')
         }
     });
 
@@ -81,12 +347,22 @@ describe('Take Game', function() {
         const height = await getBlockHeight();
         const gamesPlayedBefore = await getGamesPlayed();
 
-        await broadcastTx(invokeScript(takeGameTx(0, TAKER_RANDOMS, false, bet), TAKER_SEED));
+        await broadcastTx(invokeScript(takeGameTx(
+            0,
+            takerRandoms[0],
+            takerRandoms[1],
+            takerRandoms[2],
+            takerRandoms[3],
+            takerRandoms[4],
+            takerRandoms[5],
+            false,
+            bet),
+            TAKER_SEED));
 
         const currentPlayerGame = await getPlayerCurrentGame(address(TAKER_SEED, TEST_NET_CHAIN_ID));
         const takerAddress = await getTaker(gameId);
         const playerRole = await getPlayerRole(gameId, address(TAKER_SEED, TEST_NET_CHAIN_ID));
-        const takerRandoms = await getRandoms(gameId, "taker");
+        const takerRandomsStored = await getRandoms(gameId, "taker");
         const takerSkipReplace = await getTakerSkipReplace(gameId);
         const step = await getStep(gameId);
         const expirationHeight = await getExpirationHeight(gameId);
@@ -96,19 +372,11 @@ describe('Take Game', function() {
         assert.equal(gameId, currentPlayerGame);
         assert.equal(takerAddress, address(TAKER_SEED, TEST_NET_CHAIN_ID));
         assert.equal(playerRole, "taker");
-        assert.equal(takerRandoms, TAKER_RANDOMS);
+        assert.equal(takerRandomsStored, TAKER_RANDOMS);
         assert.equal(takerSkipReplace, false);
         assert.equal(step, 1);
-        assert.equal(expirationHeight, height + STEP_DURATION);
+        assert.approximately(expirationHeight, height + STEP_DURATION, 1);
         assert.equal(slotGameId, 0);
         assert.equal(gamesPlayedBefore, gamesPlayedAfter - 1);
-    });
-
-    it("Can't take expired game", async function () {
-        try {
-            await broadcastTx(invokeScript(takeGameTx(0, TAKER_RANDOMS, true, bet), TAKER_SEED));
-        } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], 'This game is expired')
-        }
     });
 });

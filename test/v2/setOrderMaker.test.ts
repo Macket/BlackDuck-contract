@@ -18,12 +18,12 @@ import {
 } from "../../src/settings";
 
 
-describe('Reveal', function() {
+describe('Set Order Maker', function() {
     this.timeout(120000);
 
     it("Impostor can't set", async function () {
         try {
-            await broadcastTx(invokeScript(setOrderMakerTx('worst,medium,best'), IMPOSTOR_SEED));
+            await broadcastTx(invokeScript(setOrderMakerTx('worst|medium|best'), IMPOSTOR_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
         }
@@ -31,7 +31,7 @@ describe('Reveal', function() {
 
     it("Taker can't set", async function () {
         try {
-            await broadcastTx(invokeScript(setOrderMakerTx('worst,medium,best'), TAKER_SEED));
+            await broadcastTx(invokeScript(setOrderMakerTx('worst|medium|best'), TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Only maker can call this method");
         }
@@ -39,7 +39,7 @@ describe('Reveal', function() {
 
     it("Invalid order data revert", async function () {
         try {
-            await broadcastTx(invokeScript(setOrderMakerTx('best,medium,wor'), MAKER_SEED));
+            await broadcastTx(invokeScript(setOrderMakerTx('best|medium|wor'), MAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Invalid order data");
         }
@@ -53,20 +53,20 @@ describe('Reveal', function() {
 
         assert.equal(gameStepBefore, 4);
 
-        await broadcastTx(invokeScript(setOrderMakerTx("best,medium,worst"), MAKER_SEED));
+        await broadcastTx(invokeScript(setOrderMakerTx("best|medium|worst"), MAKER_SEED));
 
         const gameStepAfter = await getStep(gameId);
         const makerOrder = await getOrder(gameId, "maker");
         const expirationHeight = await getExpirationHeight(gameId);
 
         assert.equal(gameStepAfter, 5);
-        assert.equal(makerOrder, 'best,medium,worst');
+        assert.equal(makerOrder, 'best|medium|worst');
         assert.approximately(expirationHeight, height + STEP_DURATION, 1);
     });
 
     it("Maker can't set order again", async function () {
         try {
-            await broadcastTx(invokeScript(setOrderMakerTx("best,medium,worst"), MAKER_SEED));
+            await broadcastTx(invokeScript(setOrderMakerTx("best|medium|worst"), MAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "This step is finished");
         }

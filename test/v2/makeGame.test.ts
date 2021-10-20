@@ -15,7 +15,15 @@ import {
     getSlot,
     getWaitingExpirationHeight,
 } from "../../src/sdk/v2/gameData";
-import { MAKER_SEED, IMPOSTOR_SEED, WAITING, MAKER_RANDOMS, MAKER_SALT, EGG_ID, WRONG_ASSET_ID} from "../../src/settings";
+import {
+    MAKER_SEED,
+    IMPOSTOR_SEED,
+    WAITING,
+    MAKER_RANDOMS,
+    MAKER_SALT,
+    EGG_ID,
+    WRONG_ASSET_ID,
+} from "../../src/settings";
 
 describe('Make Game', function() {
     this.timeout(120000);
@@ -130,7 +138,7 @@ describe('Make Game', function() {
         assert.equal(mediumRange, 3);
         assert.equal(bestRange, 4);
         assert.equal(makerRandomsCommit, generateCommit(MAKER_RANDOMS, MAKER_SALT))
-        assert.equal(waitingExpirationHeight, height + WAITING);
+        assert.approximately(waitingExpirationHeight, height + WAITING, 1);
         assert.equal(gameId, slotGameId);
         assert.equal(gameId + 1, nextGameId);
     });

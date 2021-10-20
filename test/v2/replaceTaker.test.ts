@@ -24,7 +24,7 @@ import {
     TAKER_REPLACE_DUCK,
 } from "../../src/settings";
 
-describe('Reveal randoms and replace maker', function() {
+describe('Replace Taker', function() {
     this.timeout(120000);
 
     it("Impostor can't call", async function () {

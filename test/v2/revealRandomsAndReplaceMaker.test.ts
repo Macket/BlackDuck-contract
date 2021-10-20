@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { address, TEST_NET_CHAIN_ID } from '@waves/ts-lib-crypto';
 import { invokeScript } from "@waves/waves-transactions";
 import { broadcastTx, arrayItemAt } from "../../src/sdk/utils";
-import { revealRandomsAndReplaceMakerTx } from "../../src/sdk/v2/gameTransactions";
+import {revealRandomsAndReplaceMakerTx, takeGameTx} from "../../src/sdk/v2/gameTransactions";
 import {
     getPlayerCurrentGame,
     getBlockHeight,
@@ -30,14 +30,23 @@ import {
     RANGES,
 } from "../../src/settings";
 
-describe('Reveal randoms and replace maker', function() {
+describe('Reveal Randoms And Replace Maker', function() {
     this.timeout(120000);
+    const makerRandoms: number[] = MAKER_RANDOMS.split("|").map(Number);
 
     it("Impostor can't call", async function () {
         try {
             await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
-                MAKER_RANDOMS, MAKER_SALT, "medium", MAKER_REPLACE_DUCK), IMPOSTOR_SEED)
-            );
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                IMPOSTOR_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
         }
@@ -46,8 +55,16 @@ describe('Reveal randoms and replace maker', function() {
     it("Taker can't call", async function () {
         try {
             await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
-                MAKER_RANDOMS, MAKER_SALT, "medium", MAKER_REPLACE_DUCK), TAKER_SEED)
-            );
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Only maker can call this method");
         }
@@ -56,8 +73,16 @@ describe('Reveal randoms and replace maker', function() {
     it("Invalid asset revert", async function () {
         try {
             await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
-                MAKER_RANDOMS, MAKER_SALT, "medium", EGG_ID), MAKER_SEED)
-            );
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                EGG_ID),
+                MAKER_SEED));
         } catch (err) {
             assert.isTrue(err.message.split(': ')[1].includes('not valid NFT'));
         }
@@ -66,8 +91,16 @@ describe('Reveal randoms and replace maker', function() {
     it("Can't play with alien duck", async function () {
         try {
             await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
-                MAKER_RANDOMS, MAKER_SALT, "medium", TAKER_REPLACE_DUCK), MAKER_SEED)
-            );
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                TAKER_REPLACE_DUCK),
+                MAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Asset " + TAKER_REPLACE_DUCK + " doesn't belong to you");
         }
@@ -76,8 +109,16 @@ describe('Reveal randoms and replace maker', function() {
     it("Duck doesn't fit rarity range revert", async function () {
         try {
             await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
-                MAKER_RANDOMS, MAKER_SALT, "medium", MAKER_BEST_DUCK), MAKER_SEED)
-            );
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_BEST_DUCK),
+                MAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Duck doesn't fit rarity range");
         }
@@ -86,20 +127,234 @@ describe('Reveal randoms and replace maker', function() {
     it("Randoms don't match commit revert", async function () {
         try {
             await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
-                TAKER_RANDOMS, MAKER_SALT, "medium", TAKER_REPLACE_DUCK), MAKER_SEED)
-            );
+                76321,
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                TAKER_REPLACE_DUCK),
+                MAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Randoms don't match commit");
         }
     });
 
-    it("Randoms wrong format revert", async function () {
+    it('Invalid random1 revert (<0)', async function () {
         try {
             await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
-                "123124jdsflkds", MAKER_SALT, "medium", MAKER_REPLACE_DUCK), MAKER_SEED)
-            );
+                -1,
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
         } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], "Randoms don't match commit");
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random1')
+        }
+    });
+
+    it('Invalid random1 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                1000000000001,
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random1')
+        }
+    });
+
+    it('Invalid random2 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                makerRandoms[0],
+                -1,
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random2')
+        }
+    });
+
+    it('Invalid random2 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                makerRandoms[0],
+                1000000000001,
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random2')
+        }
+    });
+
+    it('Invalid random3 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                makerRandoms[0],
+                makerRandoms[1],
+                -1,
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random3')
+        }
+    });
+
+    it('Invalid random3 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                makerRandoms[0],
+                makerRandoms[1],
+                1000000000001,
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random3')
+        }
+    });
+
+    it('Invalid random4 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                -1,
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random4')
+        }
+    });
+
+    it('Invalid random4 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                1000000000001,
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random4')
+        }
+    });
+
+    it('Invalid random5 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                -1,
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random5')
+        }
+    });
+
+    it('Invalid random5 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                1000000000001,
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random5')
+        }
+    });
+
+    it('Invalid random6 revert (<0)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                -1,
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random6')
+        }
+    });
+
+    it('Invalid random6 revert (>1T)', async function () {
+        try {
+            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                1000000000001,
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
+        } catch (err) {
+            assert.strictEqual(err.message.split(': ')[1], 'Invalid random6')
         }
     });
 
@@ -108,8 +363,16 @@ describe('Reveal randoms and replace maker', function() {
         const gameId = await getPlayerCurrentGame(address(TAKER_SEED, TEST_NET_CHAIN_ID));
 
         await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
-            MAKER_RANDOMS, MAKER_SALT, "medium", MAKER_REPLACE_DUCK), MAKER_SEED)
-        );
+            makerRandoms[0],
+            makerRandoms[1],
+            makerRandoms[2],
+            makerRandoms[3],
+            makerRandoms[4],
+            makerRandoms[5],
+            MAKER_SALT,
+            "medium",
+            MAKER_REPLACE_DUCK),
+            MAKER_SEED));
 
         const makerRandomsStored = await getRandoms(gameId, "maker")
         const makerWorstRarity = await getRarity(gameId, "maker", "worst");
@@ -127,13 +390,12 @@ describe('Reveal randoms and replace maker', function() {
         const mediumRange = await getRange(gameId, 'medium');
         const bestRange = await getRange(gameId, 'best');
 
-        const makerRandoms = MAKER_RANDOMS.split(",").map(Number);
-        const takerRandoms = TAKER_RANDOMS.split(",").map(Number);
+        const takerRandoms = TAKER_RANDOMS.split("|").map(Number);
 
         const replacedRarity = await calcRarity(MAKER_REPLACE_DUCK);
 
         assert.equal(makerRandomsStored, MAKER_RANDOMS);
-        assert.equal(makerWorstRarity, arrayItemAt(RANGES[worstRange - 1], makerRandoms[0] + takerRandoms[0]));
+        assert.equal(makerWorstRarity, arrayItemAt(RANGES[worstRange - 1], makerRandoms[0] + takerRandoms[0]), "error: " + RANGES[worstRange - 1] + ", " + makerRandoms[0]  + ", " + takerRandoms[0]);
         assert.equal(makerMediumRarity, replacedRarity);
         assert.equal(makerBestRarity, arrayItemAt(RANGES[bestRange - 1], makerRandoms[2] + takerRandoms[2]));
         assert.equal(makerReplacedRange, "medium");
@@ -148,8 +410,16 @@ describe('Reveal randoms and replace maker', function() {
     it("Maker can't call again", async function () {
         try {
             await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
-                MAKER_RANDOMS, MAKER_SALT, "medium", MAKER_REPLACE_DUCK), MAKER_SEED)
-            );
+                makerRandoms[0],
+                makerRandoms[1],
+                makerRandoms[2],
+                makerRandoms[3],
+                makerRandoms[4],
+                makerRandoms[5],
+                MAKER_SALT,
+                "medium",
+                MAKER_REPLACE_DUCK),
+                MAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "This step is finished");
         }

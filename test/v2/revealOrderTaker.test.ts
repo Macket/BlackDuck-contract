@@ -23,12 +23,12 @@ import {
 } from "../../src/settings";
 
 
-describe('Reveal', function() {
+describe('Reveal Order Taker', function() {
     this.timeout(120000);
 
     it("Impostor can't reveal", async function () {
         try {
-            await broadcastTx(invokeScript(revealOrderTakerTx('worst,medium,best', TAKER_SALT), IMPOSTOR_SEED));
+            await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', TAKER_SALT), IMPOSTOR_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
         }
@@ -36,7 +36,7 @@ describe('Reveal', function() {
     
     it("Maker can't reveal", async function () {
         try {
-            await broadcastTx(invokeScript(revealOrderTakerTx('worst,medium,best', TAKER_SALT), MAKER_SEED));
+            await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', TAKER_SALT), MAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
         }
@@ -44,7 +44,7 @@ describe('Reveal', function() {
 
     it("Invalid order data revert", async function () {
         try {
-            await broadcastTx(invokeScript(revealOrderTakerTx('best,medium,wor', TAKER_SALT), TAKER_SEED));
+            await broadcastTx(invokeScript(revealOrderTakerTx('best|medium|wor', TAKER_SALT), TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Invalid order data");
         }
@@ -52,7 +52,7 @@ describe('Reveal', function() {
 
     it("Commit-reveal mismatch revert", async function () {
         try {
-            await broadcastTx(invokeScript(revealOrderTakerTx('best,medium,worst', TAKER_SALT), TAKER_SEED));
+            await broadcastTx(invokeScript(revealOrderTakerTx('best|medium|worst', TAKER_SALT), TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "Reveal doesn't match commit");
         }
@@ -72,7 +72,7 @@ describe('Reveal', function() {
         const gameStepBefore = await getStep(gameId);
         assert.equal(gameStepBefore, 5);
 
-        await broadcastTx(invokeScript(revealOrderTakerTx('worst,medium,best', TAKER_SALT), TAKER_SEED));
+        await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', TAKER_SALT), TAKER_SEED));
 
         const takerOrder = await getOrder(gameId, "taker");
         const makerCurrentGame = await getPlayerCurrentGame(makerAddress);
@@ -87,7 +87,7 @@ describe('Reveal', function() {
         const takerPnLAfter = await getPlayerPnL(takerAddress);
         const makerEggBalanceAfter = await getEggBalance(makerAddress);
 
-        assert.equal(takerOrder, 'worst,medium,best');
+        assert.equal(takerOrder, 'worst|medium|best');
         assert.equal(makerCurrentGame, 0);
         assert.equal(takerCurrentGame, 0);
         assert.equal(makerWinsAfter, makerWinsBefore + 1);
@@ -103,7 +103,7 @@ describe('Reveal', function() {
 
     it("Taker can't reveal again", async function () {
         try {
-            await broadcastTx(invokeScript(revealOrderTakerTx('worst,medium,best', TAKER_SALT), TAKER_SEED));
+            await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', TAKER_SALT), TAKER_SEED));
         } catch (err) {
             assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
         }

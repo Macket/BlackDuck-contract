@@ -2,16 +2,16 @@ import { assert } from 'chai';
 import {invokeScript} from "@waves/waves-transactions";
 import { address, TEST_NET_CHAIN_ID } from "@waves/ts-lib-crypto";
 import { broadcastTx } from "../../src/sdk/utils";
-import { revealOrderTakerTx } from "../../src/sdk/v2/gameTransactions";
+import {getPrizeExpiredTx, revealOrderTakerTx} from "../../src/sdk/v2/gameTransactions";
 import {
     getPlayerCurrentGame,
     getOrder,
-    getStep,
     getBet,
     getPlayerResult,
     getPlayerPrize,
     getPlayerWins,
     getPlayerLoses,
+    getPlayerDraws,
     getEggBalance,
     getPlayerPnL,
 } from "../../src/sdk/v2/gameData";
@@ -22,90 +22,159 @@ import {
     TAKER_SALT,
 } from "../../src/settings";
 
+export const revealOrderTakerTest = (order: string, wrongOrder: string, winnerSeed: string, loserSeed: string, draw: boolean) => {
+    describe('Reveal Order Taker', function () {
+        this.timeout(120000);
 
-describe('Reveal Order Taker', function() {
-    this.timeout(120000);
+        it("Impostor can't reveal", async function () {
+            try {
+                await broadcastTx(invokeScript(revealOrderTakerTx(order, TAKER_SALT), IMPOSTOR_SEED));
+            } catch (err) {
+                assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
+            }
+        });
 
-    it("Impostor can't reveal", async function () {
-        try {
-            await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', TAKER_SALT), IMPOSTOR_SEED));
-        } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
+        it("Maker can't reveal", async function () {
+            try {
+                await broadcastTx(invokeScript(revealOrderTakerTx(order, TAKER_SALT), MAKER_SEED));
+            } catch (err) {
+                assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
+            }
+        });
+
+        it("Invalid order data revert 1", async function () {
+            try {
+                await broadcastTx(invokeScript(revealOrderTakerTx('best|medium|wor', TAKER_SALT), TAKER_SEED));
+            } catch (err) {
+                assert.strictEqual(err.message.split(': ')[1], "Invalid order data");
+            }
+        });
+
+        it("Invalid order data revert 2", async function () {
+            try {
+                await broadcastTx(invokeScript(revealOrderTakerTx('bsanfklasjf;', TAKER_SALT), TAKER_SEED));
+            } catch (err) {
+                assert.strictEqual(err.message.split(': ')[1], "Invalid order data");
+            }
+        });
+
+        it("Commit-reveal mismatch revert", async function () {
+            try {
+                await broadcastTx(invokeScript(revealOrderTakerTx(wrongOrder, TAKER_SALT), TAKER_SEED));
+            } catch (err) {
+                assert.strictEqual(err.message.split(': ')[1], "Reveal doesn't match commit");
+            }
+        });
+
+        if (!draw) {
+            it('Taker reveals', async function () {
+                const winnerAddress = address(winnerSeed, TEST_NET_CHAIN_ID);
+                const loserAddress = address(loserSeed, TEST_NET_CHAIN_ID);
+                const gameId = await getPlayerCurrentGame(loserAddress);
+                const bet = await getBet(gameId);
+                const winnerWinsBefore = await getPlayerWins(winnerAddress);
+                const loserLosesBefore = await getPlayerLoses(loserAddress);
+                const winnerPnLBefore = await getPlayerPnL(winnerAddress);
+                const loserPnLBefore = await getPlayerPnL(loserAddress);
+                const winnerEggBalanceBefore = await getEggBalance(winnerAddress);
+
+                await broadcastTx(invokeScript(revealOrderTakerTx(order, TAKER_SALT), TAKER_SEED));
+
+                const takerOrder = await getOrder(gameId, "taker");
+                const winnerCurrentGame = await getPlayerCurrentGame(winnerAddress);
+                const loserCurrentGame = await getPlayerCurrentGame(loserAddress);
+                const winnerWinsAfter = await getPlayerWins(winnerAddress);
+                const loserLosesAfter = await getPlayerLoses(loserAddress);
+                const winnerResult = await getPlayerResult(gameId, winnerAddress);
+                const winnerPrize = await getPlayerPrize(gameId, winnerAddress);
+                const loserResult = await getPlayerResult(gameId, loserAddress);
+                const loserPrize = await getPlayerPrize(gameId, loserAddress);
+                const winnerPnLAfter = await getPlayerPnL(winnerAddress);
+                const loserPnLAfter = await getPlayerPnL(loserAddress);
+                const winnerEggBalanceAfter = await getEggBalance(winnerAddress);
+
+                assert.equal(takerOrder, order);
+                assert.equal(winnerCurrentGame, 0);
+                assert.equal(loserCurrentGame, 0);
+                assert.equal(winnerWinsAfter, winnerWinsBefore + 1);
+                assert.equal(loserLosesAfter, loserLosesBefore + 1);
+                assert.equal(winnerResult, "win");
+                assert.equal(loserResult, "lose");
+                assert.equal(winnerPrize, bet);
+                assert.equal(loserPrize, -bet);
+                assert.equal(winnerPnLAfter, winnerPnLBefore + bet);
+                assert.equal(loserPnLAfter, loserPnLBefore - bet);
+                assert.equal(winnerEggBalanceAfter - winnerEggBalanceBefore, bet * 2, "Winner EGG balance error");
+            });
         }
-    });
-    
-    it("Maker can't reveal", async function () {
-        try {
-            await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', TAKER_SALT), MAKER_SEED));
-        } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
+
+        if (draw) {
+            it('Taker reveals (draw)', async function () {
+                const firstAddress = address(winnerSeed, TEST_NET_CHAIN_ID);
+                const secondAddress = address(loserSeed, TEST_NET_CHAIN_ID);
+                const gameId = await getPlayerCurrentGame(secondAddress);
+                const bet = await getBet(gameId);
+                const firstDrawsBefore = await getPlayerDraws(firstAddress);
+                const secondDrawsBefore = await getPlayerDraws(secondAddress);
+                const firstPnLBefore = await getPlayerPnL(firstAddress);
+                const secondPnLBefore = await getPlayerPnL(secondAddress);
+                const firstEggBalanceBefore = await getEggBalance(firstAddress);
+                const secondEggBalanceBefore = await getEggBalance(secondAddress);
+
+                await broadcastTx(invokeScript(revealOrderTakerTx(order, TAKER_SALT), TAKER_SEED));
+
+                const takerOrder = await getOrder(gameId, "taker");
+                const firstCurrentGame = await getPlayerCurrentGame(firstAddress);
+                const secondCurrentGame = await getPlayerCurrentGame(secondAddress);
+                const firstDrawsAfter = await getPlayerDraws(firstAddress);
+                const secondDrawsAfter = await getPlayerDraws(secondAddress);
+                const firstResult = await getPlayerResult(gameId, firstAddress);
+                const firstPrize = await getPlayerPrize(gameId, firstAddress);
+                const secondResult = await getPlayerResult(gameId, secondAddress);
+                const secondPrize = await getPlayerPrize(gameId, secondAddress);
+                const firstPnLAfter = await getPlayerPnL(firstAddress);
+                const secondPnLAfter = await getPlayerPnL(secondAddress);
+                const firstEggBalanceAfter = await getEggBalance(firstAddress);
+                const secondEggBalanceAfter = await getEggBalance(secondAddress);
+
+                assert.equal(takerOrder, order);
+                assert.equal(firstCurrentGame, 0);
+                assert.equal(secondCurrentGame, 0);
+                assert.equal(firstDrawsAfter, firstDrawsBefore + 1);
+                assert.equal(secondDrawsAfter, secondDrawsBefore + 1);
+                assert.equal(firstResult, "draw");
+                assert.equal(secondResult, "draw");
+                assert.equal(firstPrize, 0);
+                assert.equal(secondPrize, 0);
+                assert.equal(firstPnLAfter, firstPnLBefore);
+                assert.equal(secondPnLAfter, secondPnLBefore);
+                assert.equal(firstEggBalanceAfter - firstEggBalanceBefore, bet);
+                assert.equal(secondEggBalanceAfter - secondEggBalanceBefore, bet);
+            });
         }
+
+        it("Taker can't reveal again", async function () {
+            try {
+                await broadcastTx(invokeScript(revealOrderTakerTx(order, TAKER_SALT), TAKER_SEED));
+            } catch (err) {
+                assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
+            }
+        });
+
+        it("Maker can't get prize", async function () {
+            try {
+                await broadcastTx(invokeScript(getPrizeExpiredTx(), MAKER_SEED));
+            } catch (err) {
+                assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
+            }
+        });
+
+        it("Taker can't get prize", async function () {
+            try {
+                await broadcastTx(invokeScript(getPrizeExpiredTx(), TAKER_SEED));
+            } catch (err) {
+                assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
+            }
+        });
     });
-
-    it("Invalid order data revert", async function () {
-        try {
-            await broadcastTx(invokeScript(revealOrderTakerTx('best|medium|wor', TAKER_SALT), TAKER_SEED));
-        } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], "Invalid order data");
-        }
-    });
-
-    it("Commit-reveal mismatch revert", async function () {
-        try {
-            await broadcastTx(invokeScript(revealOrderTakerTx('best|medium|worst', TAKER_SALT), TAKER_SEED));
-        } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], "Reveal doesn't match commit");
-        }
-    });
-
-    it('Taker reveals', async function () {
-        const takerAddress = address(TAKER_SEED, TEST_NET_CHAIN_ID);
-        const makerAddress = address(MAKER_SEED, TEST_NET_CHAIN_ID);
-        const gameId = await getPlayerCurrentGame(takerAddress);
-        const bet = await getBet(gameId);
-        const makerWinsBefore = await getPlayerWins(makerAddress);
-        const takerLosesBefore = await getPlayerLoses(takerAddress);
-        const makerPnLBefore = await getPlayerPnL(makerAddress);
-        const takerPnLBefore = await getPlayerPnL(takerAddress);
-        const makerEggBalanceBefore = await getEggBalance(makerAddress);
-
-        const gameStepBefore = await getStep(gameId);
-        assert.equal(gameStepBefore, 5);
-
-        await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', TAKER_SALT), TAKER_SEED));
-
-        const takerOrder = await getOrder(gameId, "taker");
-        const makerCurrentGame = await getPlayerCurrentGame(makerAddress);
-        const takerCurrentGame = await getPlayerCurrentGame(takerAddress);
-        const makerWinsAfter = await getPlayerWins(makerAddress);
-        const takerLosesAfter = await getPlayerLoses(takerAddress);
-        const makerResult = await getPlayerResult(gameId, makerAddress);
-        const makerPrize = await getPlayerPrize(gameId, makerAddress);
-        const takerResult = await getPlayerResult(gameId, takerAddress);
-        const takerPrize = await getPlayerPrize(gameId, takerAddress);
-        const makerPnLAfter = await getPlayerPnL(makerAddress);
-        const takerPnLAfter = await getPlayerPnL(takerAddress);
-        const makerEggBalanceAfter = await getEggBalance(makerAddress);
-
-        assert.equal(takerOrder, 'worst|medium|best');
-        assert.equal(makerCurrentGame, 0);
-        assert.equal(takerCurrentGame, 0);
-        assert.equal(makerWinsAfter, makerWinsBefore + 1);
-        assert.equal(takerLosesAfter, takerLosesBefore + 1);
-        assert.equal(makerResult, "win");
-        assert.equal(takerResult, "lose");
-        assert.equal(makerPrize, bet);
-        assert.equal(takerPrize, -bet);
-        assert.equal(makerPnLAfter, makerPnLBefore + bet);
-        assert.equal(takerPnLAfter, takerPnLBefore - bet);
-        assert.equal(makerEggBalanceAfter - makerEggBalanceBefore, bet * 2, "Winner EGG balance error");
-    });
-
-    it("Taker can't reveal again", async function () {
-        try {
-            await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', TAKER_SALT), TAKER_SEED));
-        } catch (err) {
-            assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
-        }
-    });
-});
+}

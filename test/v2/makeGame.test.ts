@@ -19,7 +19,7 @@ import {
     getPlayerRole,
     getMaker,
     getBet,
-    getRange,
+    getRanges,
     getMakerRandomsCommit,
     getSlot,
     getWaitingExpirationHeight,
@@ -134,9 +134,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
             const makerAddress = await getMaker(gameId);
             const playerRole = await getPlayerRole(gameId, address(MAKER_SEED, TEST_NET_CHAIN_ID));
             const bet = await getBet(gameId);
-            const worstRangeStored = await getRange(gameId, 'worst');
-            const mediumRangeStored = await getRange(gameId, 'medium');
-            const bestRangeStored = await getRange(gameId, 'best');
+            const [worstRangeStored, mediumRangeStored, bestRangeStored] = (await getRanges(gameId)).split("|").map(Number);
             const makerRandomsCommit = await getMakerRandomsCommit(gameId);
             const waitingExpirationHeight = await getWaitingExpirationHeight(gameId);
             const slotGameId = await getSlot(0);
@@ -207,7 +205,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
                     randomsArr[4],
                     randomsArr[5],
                     MAKER_SALT,
-                    "medium",
+                    2,
                     MAKER_MEDIUM_DUCK),
                     MAKER_SEED));
             } catch (err) {
@@ -227,7 +225,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
                     randomsArr[4],
                     randomsArr[5],
                     MAKER_SALT,
-                    "medium",
+                    2,
                     TAKER_MEDIUM_DUCK),
                     TAKER_SEED));
             } catch (err) {
@@ -237,7 +235,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Maker can't replace duck (taker method)", async function () {
             try {
-                await broadcastTx(invokeScript(replaceTakerTx("medium", MAKER_MEDIUM_DUCK), MAKER_SEED));
+                await broadcastTx(invokeScript(replaceTakerTx(2, MAKER_MEDIUM_DUCK), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
             }
@@ -245,7 +243,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Taker can't replace duck", async function () {
             try {
-                await broadcastTx(invokeScript(replaceTakerTx("medium", TAKER_MEDIUM_DUCK), TAKER_SEED));
+                await broadcastTx(invokeScript(replaceTakerTx(2, TAKER_MEDIUM_DUCK), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
             }
@@ -253,7 +251,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Maker can't commit order (taker method)", async function () {
             try {
-                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst|medium|best', MAKER_SALT)), MAKER_SEED));
+                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3', MAKER_SALT)), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
             }
@@ -261,7 +259,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Taker can't commit order", async function () {
             try {
-                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst|medium|best', MAKER_SALT)), TAKER_SEED));
+                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3', MAKER_SALT)), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
             }
@@ -269,7 +267,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Maker can't set order", async function () {
             try {
-                await broadcastTx(invokeScript(setOrderMakerTx("best|medium|worst"), MAKER_SEED));
+                await broadcastTx(invokeScript(setOrderMakerTx("3|2|1"), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }
@@ -277,7 +275,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Taker can't set order (maker method)", async function () {
             try {
-                await broadcastTx(invokeScript(setOrderMakerTx("best|medium|worst"), TAKER_SEED));
+                await broadcastTx(invokeScript(setOrderMakerTx("3|2|1"), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
             }
@@ -285,7 +283,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Maker can't reveal order (taker method)", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', MAKER_SALT), MAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', MAKER_SALT), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
             }
@@ -293,7 +291,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Taker can't reveal order", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', MAKER_SALT), TAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', MAKER_SALT), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
             }

@@ -40,7 +40,7 @@ export const setOrderMakerTest = (order: string) => {
 
         it("Invalid order data revert 1", async function () {
             try {
-                await broadcastTx(invokeScript(setOrderMakerTx('best|medium|wor'), MAKER_SEED));
+                await broadcastTx(invokeScript(setOrderMakerTx('3|2|worst'), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Invalid order data");
             }

@@ -65,7 +65,7 @@ export const commitOrderTakerTest = (order: string, salt: string) => {
 
         it("Taker can't reveal order", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', TAKER_SALT), TAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', TAKER_SALT), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }

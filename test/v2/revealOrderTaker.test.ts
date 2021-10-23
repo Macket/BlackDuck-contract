@@ -44,7 +44,7 @@ export const revealOrderTakerTest = (order: string, wrongOrder: string, winnerSe
 
         it("Invalid order data revert 1", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('best|medium|wor', TAKER_SALT), TAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('3|2|14', TAKER_SALT), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Invalid order data");
             }

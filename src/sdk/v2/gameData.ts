@@ -87,8 +87,8 @@ export const getExpirationHeight = async (gameId: number): Promise<number> => {
     return (await getData('game' + gameId.toString() + '_expirationHeight'))[0].value as number;
 }
 
-export const getRange = async (gameId: number, rangePosition: string): Promise<number> => {
-    return (await getData('game' + gameId.toString() + '_range_' + rangePosition))[0].value as number;
+export const getRanges = async (gameId: number): Promise<string> => {
+    return (await getData('game' + gameId.toString() + '_ranges'))[0].value as string;
 }
 
 export const getMakerRandomsCommit = async (gameId: number): Promise<string> => {
@@ -103,16 +103,16 @@ export const getStep = async (gameId: number): Promise<number> => {
     return (await getData('game' + gameId.toString() + '_step'))[0].value as number;
 }
 
-export const getRarity = async (gameId: number, playerRole: 'maker' | 'taker', rangePosition: 'worst' | 'medium' | 'best'): Promise<number> => {
-    return (await getData('game' + gameId.toString() + "_" + playerRole + "_" + rangePosition + "Rarity"))[0].value as number;
+export const getRarities = async (gameId: number, playerRole: 'maker' | 'taker'): Promise<string> => {
+    return (await getData('game' + gameId.toString() + "_" + playerRole + "_rarities"))[0].value as string;
 }
 
 export const getDuckId = async (gameId: number, playerRole: string): Promise<string> => {
     return (await getData('game' + gameId.toString() + "_" + playerRole + "_duckId"))[0].value as string;
 }
 
-export const getReplacedRange = async (gameId: number, playerRole: string): Promise<string> => {
-    return (await getData('game' + gameId.toString() + "_" + playerRole + "_replacedRange"))[0].value as string;
+export const getReplacedPosition = async (gameId: number, playerRole: string): Promise<number> => {
+    return (await getData('game' + gameId.toString() + "_" + playerRole + "_replacedPosition"))[0].value as number;
 }
 
 export const getTakerOrderCommit = async (gameId: number): Promise<string> => {

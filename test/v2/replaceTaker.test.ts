@@ -11,10 +11,10 @@ import {
 import {
     getPlayerCurrentGame,
     getBlockHeight,
-    getRarity,
+    getRarities,
     getStep,
     getExpirationHeight,
-    getReplacedRange,
+    getReplacedPosition,
     getDuckId,
     calcRarity,
 } from "../../src/sdk/v2/gameData";
@@ -28,13 +28,13 @@ import {
     TAKER_SALT,
 } from "../../src/settings";
 
-export const replaceTakerTest = (rangeToReplace: string, duckId: string, wrongRarityDuckId: string) => {
+export const replaceTakerTest = (replacePosition: number, duckId: string, wrongRarityDuckId: string) => {
     describe('Replace Taker', function () {
         this.timeout(120000);
 
         it("Impostor can't call", async function () {
             try {
-                await broadcastTx(invokeScript(replaceTakerTx(rangeToReplace, duckId), IMPOSTOR_SEED));
+                await broadcastTx(invokeScript(replaceTakerTx(replacePosition, duckId), IMPOSTOR_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
             }
@@ -42,7 +42,7 @@ export const replaceTakerTest = (rangeToReplace: string, duckId: string, wrongRa
 
         it("Maker can't call", async function () {
             try {
-                await broadcastTx(invokeScript(replaceTakerTx(rangeToReplace, duckId), MAKER_SEED));
+                await broadcastTx(invokeScript(replaceTakerTx(replacePosition, duckId), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
             }
@@ -50,15 +50,15 @@ export const replaceTakerTest = (rangeToReplace: string, duckId: string, wrongRa
 
         it("Wrong range format revert", async function () {
             try {
-                await broadcastTx(invokeScript(replaceTakerTx("wrong", duckId), TAKER_SEED));
+                await broadcastTx(invokeScript(replaceTakerTx(124, duckId), TAKER_SEED));
             } catch (err) {
-                assert.strictEqual(err.message.split(': ')[1], "Invalid range - wrong. Must be worst, medium or best");
+                assert.strictEqual(err.message.split(': ')[1], "Invalid replace position - 124. Must be 1, 2 or 3");
             }
         });
 
         it("Invalid asset revert", async function () {
             try {
-                await broadcastTx(invokeScript(replaceTakerTx(rangeToReplace, EGG_ID), TAKER_SEED));
+                await broadcastTx(invokeScript(replaceTakerTx(replacePosition, EGG_ID), TAKER_SEED));
             } catch (err) {
                 assert.isTrue(err.message.split(': ')[1].includes('not valid NFT'));
             }
@@ -66,7 +66,7 @@ export const replaceTakerTest = (rangeToReplace: string, duckId: string, wrongRa
 
         it("Can't play with alien duck", async function () {
             try {
-                await broadcastTx(invokeScript(replaceTakerTx(rangeToReplace, MAKER_BEST_DUCK), TAKER_SEED));
+                await broadcastTx(invokeScript(replaceTakerTx(replacePosition, MAKER_BEST_DUCK), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Asset " + MAKER_BEST_DUCK + " doesn't belong to you");
             }
@@ -74,29 +74,29 @@ export const replaceTakerTest = (rangeToReplace: string, duckId: string, wrongRa
 
         it("Duck doesn't fit rarity range revert", async function () {
             try {
-                await broadcastTx(invokeScript(replaceTakerTx(rangeToReplace, wrongRarityDuckId), TAKER_SEED));
+                await broadcastTx(invokeScript(replaceTakerTx(replacePosition, wrongRarityDuckId), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Duck doesn't fit rarity range");
             }
         });
 
 
-        it("Maker reveals and replaces", async function () {
+        it("Taker replaces", async function () {
             const height = await getBlockHeight();
             const gameId = await getPlayerCurrentGame(address(TAKER_SEED, TEST_NET_CHAIN_ID));
 
-            await broadcastTx(invokeScript(replaceTakerTx(rangeToReplace, duckId), TAKER_SEED));
+            await broadcastTx(invokeScript(replaceTakerTx(replacePosition, duckId), TAKER_SEED));
 
-            const takerReplacedRange = await getReplacedRange(gameId, "taker");
+            const takerReplacedRange = await getReplacedPosition(gameId, "taker");
             const takerDuckId = await getDuckId(gameId, "taker");
-            const takerBestRarity = await getRarity(gameId, "taker", rangeToReplace);
+            const takerBestRarity = (await getRarities(gameId, "taker")).split("|").map(Number)[replacePosition - 1];
             const gameStep = await getStep(gameId);
             const expirationHeight = await getExpirationHeight(gameId);
 
             const replacedRarity = await calcRarity(duckId);
 
             assert.equal(takerBestRarity, replacedRarity);
-            assert.equal(takerReplacedRange, rangeToReplace);
+            assert.equal(takerReplacedRange, replacePosition);
             assert.equal(takerDuckId, duckId);
             assert.equal(gameStep, 3);
             assert.approximately(expirationHeight, height + STEP_DURATION, 1);
@@ -104,7 +104,7 @@ export const replaceTakerTest = (rangeToReplace: string, duckId: string, wrongRa
 
         it("Taker can't call again", async function () {
             try {
-                await broadcastTx(invokeScript(replaceTakerTx(rangeToReplace, duckId), TAKER_SEED));
+                await broadcastTx(invokeScript(replaceTakerTx(replacePosition, duckId), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is finished");
             }
@@ -112,7 +112,7 @@ export const replaceTakerTest = (rangeToReplace: string, duckId: string, wrongRa
 
         it("Maker can't set order", async function () {
             try {
-                await broadcastTx(invokeScript(setOrderMakerTx("best|medium|worst"), MAKER_SEED));
+                await broadcastTx(invokeScript(setOrderMakerTx("3|2|1"), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }
@@ -120,7 +120,7 @@ export const replaceTakerTest = (rangeToReplace: string, duckId: string, wrongRa
 
         it("Taker can't reveal order", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', TAKER_SALT), TAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', TAKER_SALT), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }

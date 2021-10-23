@@ -429,7 +429,7 @@ export const takeGameTest = (randoms: string, skipReplace: boolean) => {
 
         it("Taker can't replace duck", async function () {
             try {
-                await broadcastTx(invokeScript(replaceTakerTx("medium", TAKER_MEDIUM_DUCK), TAKER_SEED));
+                await broadcastTx(invokeScript(replaceTakerTx(2, TAKER_MEDIUM_DUCK), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }
@@ -438,7 +438,7 @@ export const takeGameTest = (randoms: string, skipReplace: boolean) => {
 
         it("Taker can't commit order", async function () {
             try {
-                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst|medium|best', MAKER_SALT)), TAKER_SEED));
+                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3', MAKER_SALT)), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }
@@ -446,7 +446,7 @@ export const takeGameTest = (randoms: string, skipReplace: boolean) => {
 
         it("Maker can't set order", async function () {
             try {
-                await broadcastTx(invokeScript(setOrderMakerTx("best|medium|worst"), MAKER_SEED));
+                await broadcastTx(invokeScript(setOrderMakerTx("3|2|1"), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }
@@ -454,7 +454,7 @@ export const takeGameTest = (randoms: string, skipReplace: boolean) => {
 
         it("Taker can't reveal order", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', MAKER_SALT), TAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', MAKER_SALT), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }

@@ -25,17 +25,17 @@ describe('Taker wins. Replace', async function () {
     takeGameTest(RANDOMS2, false);
 
     // Step1. Maker: 12|18|13(r), Taker: 17|14|17
-    revealRandomsAndReplaceMakerTest(RANDOMS1, "best", MAKER_WORST_DUCK, MAKER_BEST_DUCK, false);
+    revealRandomsAndReplaceMakerTest(RANDOMS1, 3, MAKER_WORST_DUCK, MAKER_BEST_DUCK, false);
 
     // Step2. Taker replaces 14 with 13. Now Maker: 12|18|13(r), Taker: 17|13(r)|17
-    replaceTakerTest("medium", TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK);
+    replaceTakerTest(2, TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK);
 
     // Step3. 17|13|17
-    commitOrderTakerTest("worst|medium|best", TAKER_SALT);
+    commitOrderTakerTest("1|2|3", TAKER_SALT);
 
     // Step4. 12|13|18
-    setOrderMakerTest("worst|best|medium");
+    setOrderMakerTest("1|3|2");
 
     // Step5. 12|13|18 vs 17|13|17 = -1|0|1. Draw
-    revealOrderTakerTest("worst|medium|best", "best|medium|worst",  TAKER_SEED, MAKER_SEED, true);
+    revealOrderTakerTest("1|2|3", "3|2|1",  TAKER_SEED, MAKER_SEED, true);
 })

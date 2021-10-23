@@ -11,15 +11,14 @@ import {
 import {
     getPlayerCurrentGame,
     getBlockHeight,
-    getRarity,
+    getRarities,
     getStep,
     getExpirationHeight,
-    getRange,
+    getRanges,
     getRandoms,
-    getReplacedRange,
+    getReplacedPosition,
     getDuckId,
     calcRarity,
-    getTakerSkipReplace,
 } from "../../src/sdk/v2/gameData";
 import {
     MAKER_SEED,
@@ -33,7 +32,7 @@ import {
     RANGES,
 } from "../../src/settings";
 
-export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace: string, duckId: string, wrongRarityDuckId: string, skipReplace: boolean) => {
+export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPosition: number, duckId: string, wrongRarityDuckId: string, skipReplace: boolean) => {
     describe('Reveal Randoms And Replace Maker', function () {
         this.timeout(120000);
         const makerRandoms: number[] = randoms.split("|").map(Number);
@@ -48,7 +47,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     IMPOSTOR_SEED));
             } catch (err) {
@@ -66,7 +65,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     TAKER_SEED));
             } catch (err) {
@@ -84,7 +83,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    "worst",
+                    1,
                     EGG_ID),
                     MAKER_SEED));
             } catch (err) {
@@ -102,7 +101,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    "medium",
+                    2,
                     TAKER_MEDIUM_DUCK),
                     MAKER_SEED));
             } catch (err) {
@@ -110,7 +109,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
             }
         });
 
-        if (rangeToReplace === "worst" || rangeToReplace === "medium" || rangeToReplace === "best") {
+        if (replacedPosition === 1 || replacedPosition === 2 || replacedPosition === 3) {
             it("Duck doesn't fit rarity range revert", async function () {
                 try {
                     await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
@@ -121,7 +120,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                         makerRandoms[4],
                         makerRandoms[5],
                         MAKER_SALT,
-                        rangeToReplace,
+                        replacedPosition,
                         wrongRarityDuckId),
                         MAKER_SEED));
                 } catch (err) {
@@ -140,7 +139,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -158,7 +157,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -176,7 +175,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -194,7 +193,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -212,7 +211,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -230,7 +229,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -248,7 +247,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -266,7 +265,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -284,7 +283,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -302,7 +301,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     -1,
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -320,7 +319,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     1000000000001,
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -338,7 +337,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     -1,
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -356,7 +355,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     1000000000001,
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -376,41 +375,35 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                 makerRandoms[4],
                 makerRandoms[5],
                 MAKER_SALT,
-                rangeToReplace,
+                replacedPosition,
                 duckId),
                 MAKER_SEED));
 
             const makerRandomsStored = await getRandoms(gameId, "maker")
-            const makerWorstRarity = await getRarity(gameId, "maker", "worst");
-            const makerMediumRarity = await getRarity(gameId, "maker", "medium");
-            const makerBestRarity = await getRarity(gameId, "maker", "best");
-            const makerReplacedRange = await getReplacedRange(gameId, "maker");
+            const [makerWorstRarity, makerMediumRarity, makerBestRarity] = (await getRarities(gameId, "maker")).split("|").map(Number);
+            const makerReplacedPosition = await getReplacedPosition(gameId, "maker");
             const makerDuckId = await getDuckId(gameId, "maker");
-            const takerWorstRarity = await getRarity(gameId, "taker", "worst");
-            const takerMediumRarity = await getRarity(gameId, "taker", "medium");
-            const takerBestRarity = await getRarity(gameId, "taker", "best");
+            const [takerWorstRarity, takerMediumRarity, takerBestRarity] = (await getRarities(gameId, "taker")).split("|").map(Number);
             const gameStep = await getStep(gameId);
             const expirationHeight = await getExpirationHeight(gameId);
 
-            const worstRange = await getRange(gameId, "worst");
-            const mediumRange = await getRange(gameId, "medium");
-            const bestRange = await getRange(gameId, "best");
+            const [worstRange, mediumRange, bestRange] = (await getRanges(gameId)).split("|").map(Number);
 
             const takerRandoms = (await getRandoms(gameId, "taker")).split("|").map(Number);
             const expectedStep = skipReplace ? 3 : 2;
 
-            const makerWorstRarityExpected = rangeToReplace === "worst" ? await calcRarity(duckId) :
+            const makerWorstRarityExpected = replacedPosition === 1 ? await calcRarity(duckId) :
                 arrayItemAt(RANGES[worstRange - 1], makerRandoms[0] + takerRandoms[0]);
-            const makerMediumRarityExpected = rangeToReplace === "medium" ? await calcRarity(duckId) :
+            const makerMediumRarityExpected = replacedPosition === 2 ? await calcRarity(duckId) :
                 arrayItemAt(RANGES[mediumRange - 1], makerRandoms[1] + takerRandoms[1]);
-            const makerBestRarityExpected = rangeToReplace === "best" ? await calcRarity(duckId) :
+            const makerBestRarityExpected = replacedPosition === 3 ? await calcRarity(duckId) :
                 arrayItemAt(RANGES[bestRange - 1], makerRandoms[2] + takerRandoms[2]);
 
             assert.equal(makerRandomsStored, randoms);
             assert.equal(makerWorstRarity, makerWorstRarityExpected);
             assert.equal(makerMediumRarity, makerMediumRarityExpected);
             assert.equal(makerBestRarity, makerBestRarityExpected);
-            assert.equal(makerReplacedRange, rangeToReplace);
+            assert.equal(makerReplacedPosition, replacedPosition);
             assert.equal(makerDuckId, duckId);
             assert.equal(takerWorstRarity, arrayItemAt(RANGES[worstRange - 1], makerRandoms[3] + takerRandoms[3]));
             assert.equal(takerMediumRarity, arrayItemAt(RANGES[mediumRange - 1], makerRandoms[4] + takerRandoms[4]));
@@ -429,7 +422,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
                     makerRandoms[4],
                     makerRandoms[5],
                     MAKER_SALT,
-                    rangeToReplace,
+                    replacedPosition,
                     duckId),
                     MAKER_SEED));
             } catch (err) {
@@ -440,7 +433,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
         if (skipReplace) {
             it("Taker can't replace duck", async function () {
                 try {
-                    await broadcastTx(invokeScript(replaceTakerTx("best", TAKER_BEST_DUCK), TAKER_SEED));
+                    await broadcastTx(invokeScript(replaceTakerTx(3, TAKER_BEST_DUCK), TAKER_SEED));
                 } catch (err) {
                     assert.strictEqual(err.message.split(': ')[1], "This step is finished");
                 }
@@ -450,7 +443,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
         if (!skipReplace) {
             it("Taker can't commit order", async function () {
                 try {
-                    await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('worst|medium|best', MAKER_SALT)), TAKER_SEED));
+                    await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3', MAKER_SALT)), TAKER_SEED));
                 } catch (err) {
                     assert.strictEqual(err.message.split(': ')[1], "This step is not started");
                 }
@@ -459,7 +452,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
 
         it("Maker can't set order", async function () {
             try {
-                await broadcastTx(invokeScript(setOrderMakerTx("best|medium|worst"), MAKER_SEED));
+                await broadcastTx(invokeScript(setOrderMakerTx("3|2|1"), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }
@@ -467,7 +460,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, rangeToReplace
 
         it("Taker can't reveal order", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('worst|medium|best', MAKER_SALT), TAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', MAKER_SALT), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }

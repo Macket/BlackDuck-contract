@@ -13,8 +13,9 @@ import {
     getPlayerPrize,
     getPlayerPnL,
     getStep,
+    getTotalFee,
 } from "../../src/sdk/v2/gameData";
-import {MAKER_SEED, TAKER_SEED, IMPOSTOR_SEED} from "../../src/settings";
+import {MAKER_SEED, TAKER_SEED, IMPOSTOR_SEED, FEE_AGGREGATOR, FEE_PERCENT} from "../../src/settings";
 
 describe('Get Prize Expired', function() {
     this.timeout(120000);
@@ -36,12 +37,13 @@ describe('Get Prize Expired', function() {
         const bet = await getBet(gameId);
         const winnerAddress = (step === 1 || step === 4) ? takerAddress : makerAddress
         const loserAddress = (step === 1 || step === 4) ? makerAddress : takerAddress
-
         const winnerWinsBefore = await getPlayerWins(winnerAddress);
         const loserLosesBefore = await getPlayerLoses(loserAddress);
         const winnerPnLBefore = await getPlayerPnL(winnerAddress);
         const loserPnLBefore = await getPlayerPnL(loserAddress);
         const winnerEggBalanceBefore = await getEggBalance(winnerAddress);
+        const feeAggregatorBalanceBefore = await getEggBalance(FEE_AGGREGATOR);
+        const totalFeeBefore = await getTotalFee();
 
         await broadcastTx(invokeScript(getPrizeExpiredTx(), TAKER_SEED));
 
@@ -56,6 +58,10 @@ describe('Get Prize Expired', function() {
         const winnerPnLAfter = await getPlayerPnL(winnerAddress);
         const loserPnLAfter = await getPlayerPnL(loserAddress);
         const winnerEggBalanceAfter = await getEggBalance(winnerAddress);
+        const feeAggregatorBalanceAfter = await getEggBalance(FEE_AGGREGATOR);
+        const totalFeeAfter = await getTotalFee();
+
+        const fee = bet * FEE_PERCENT / 100;
 
         assert.equal(winnerCurrentGame, 0);
         assert.equal(loserCurrentGame, 0);
@@ -63,11 +69,13 @@ describe('Get Prize Expired', function() {
         assert.equal(loserLosesAfter, loserLosesBefore + 1);
         assert.equal(winnerResult, "win");
         assert.equal(loserResult, "lose");
-        assert.equal(winnerPrize, bet);
+        assert.equal(winnerPrize, bet - fee);
         assert.equal(loserPrize, -bet);
-        assert.equal(winnerPnLAfter, winnerPnLBefore + bet);
+        assert.equal(winnerPnLAfter, winnerPnLBefore + bet - fee);
         assert.equal(loserPnLAfter, loserPnLBefore - bet);
-        assert.equal(winnerEggBalanceAfter - winnerEggBalanceBefore, bet * 2, "Winner EGG balance error");
+        assert.equal(winnerEggBalanceAfter - winnerEggBalanceBefore, bet * 2 - fee, "Winner EGG balance error");
+        assert.equal(feeAggregatorBalanceAfter - feeAggregatorBalanceBefore, fee, "Fee aggregator EGG balance error");
+        assert.equal(totalFeeAfter - totalFeeBefore, fee, "Total fee error");
     });
 
     it("Taker can't call again", async function () {

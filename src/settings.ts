@@ -4,7 +4,7 @@ export const TAKER_SEED = ""
 export const IMPOSTOR_SEED = ""
 
 export const EGG_ID = "AjXHBGsVDeXETQPk3qH4CPbZdfXPyNo5XoBx7jVbtwWG"
-export const WRONG_ASSET_ID = "3VUCuh9dWqe54SdzzNUkXhFXpc8UQynnJVh42B7MjNzN"
+export const WRONG_ASSET_ID = "3VUCuh9dWqe54SdzzNUkXhFXpc8UQynnJVh42B7MjNzN" // Old EGG
 export const WAITING = 8
 export const STEP_DURATION = 5
 
@@ -17,6 +17,7 @@ export const TAKER_SALT = "3441badf6795"
 
 export const INCUBATOR_ADDRESS = "3MtBigTsaeevrcJAEwVcr4quwkqcrtnjoAh"
 export const FARMING_ADDRESS = "3NBznG19rEYUAcnukTRTtwJHBVKQLbobVdC"
+export const FEE_AGGREGATOR = "3MwikA4opnqZMGVriWzH8Gq2CJXuaVBdboH"
 
 export const GAME_ADDRESS = "3N6oaapvYkEryHUr4vAiPRXM3iS6kMYXito"
 export const RARITY_PROVIDER_ADDRESS = '3NCman4dCzk1HWWU4DPTr5rsbhvuUCwwUZh';
@@ -52,3 +53,5 @@ export const RANGES = [
     [31, 33, 35, 37, 40],
     [44, 50, 57, 70, 100]
 ]
+
+export const FEE_PERCENT = 10;

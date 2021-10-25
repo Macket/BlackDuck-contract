@@ -11,21 +11,21 @@ import {
 } from "../../../src/settings";
 import { makeGameTest } from "../makeGame.test";
 import { takeGameTest } from "../takeGame.test";
-import { revealRandomsAndReplaceMakerTest } from "../revealRandomsAndReplaceMaker.test";
+import { replaceMakerTest } from "../replaceMaker.test";
 import { replaceTakerTest } from "../replaceTaker.test";
 import { commitOrderTakerTest } from "../commitOrderTaker.test";
 import { setOrderMakerTest } from "../setOrderMaker.test";
 import { revealOrderTakerTest } from "../revealOrderTaker.test";
 
 
-describe('Taker wins. Replace', async function () {
+describe('Draw. One Range. Replace', async function () {
     this.timeout(120000);
 
     makeGameTest(RANDOMS1, 2, 2, 2);
     takeGameTest(RANDOMS2, false);
 
     // Step1. Maker: 12|18|13(r), Taker: 17|14|17
-    revealRandomsAndReplaceMakerTest(RANDOMS1, 3, MAKER_WORST_DUCK, MAKER_BEST_DUCK, false);
+    replaceMakerTest(RANDOMS1, 3, MAKER_WORST_DUCK, MAKER_BEST_DUCK, false);
 
     // Step2. Taker replaces 14 with 13. Now Maker: 12|18|13(r), Taker: 17|13(r)|17
     replaceTakerTest(2, TAKER_WORST_DUCK, TAKER_MEDIUM_DUCK);

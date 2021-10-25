@@ -25,7 +25,7 @@ export const commitOrderTakerTest = (order: string, salt: string) => {
 
         it("Impostor can't commit", async function () {
             try {
-                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit(order, salt)), IMPOSTOR_SEED));
+                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit(order + salt)), IMPOSTOR_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
             }
@@ -33,7 +33,7 @@ export const commitOrderTakerTest = (order: string, salt: string) => {
 
         it("Maker can't commit", async function () {
             try {
-                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit(order, salt)), MAKER_SEED));
+                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit(order + salt)), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
             }
@@ -44,20 +44,20 @@ export const commitOrderTakerTest = (order: string, salt: string) => {
             const gameId = await getPlayerCurrentGame(takerAddress);
             const height = await getBlockHeight();
 
-            await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit(order, salt)), TAKER_SEED));
+            await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit(order + salt)), TAKER_SEED));
 
             const gameStepAfter = await getStep(gameId);
             const takerCommit = await getTakerOrderCommit(gameId);
             const expirationHeight = await getExpirationHeight(gameId);
 
             assert.equal(gameStepAfter, 4);
-            assert.equal(takerCommit, generateCommit(order, salt));
+            assert.equal(takerCommit, generateCommit(order + salt));
             assert.approximately(expirationHeight, height + STEP_DURATION, 1);
         });
 
         it("Taker can't commit again", async function () {
             try {
-                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit(order, salt)), TAKER_SEED));
+                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit(order + salt)), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is finished");
             }

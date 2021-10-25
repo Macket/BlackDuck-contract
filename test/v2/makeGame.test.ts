@@ -5,7 +5,7 @@ import { broadcastTx, generateCommit } from "../../src/sdk/utils";
 import {
     makeGameTx,
     takeGameTx,
-    revealRandomsAndReplaceMakerTx,
+    replaceMakerTx,
     replaceTakerTx,
     commitOrderTakerTx,
     setOrderMakerTx,
@@ -29,7 +29,7 @@ import {
     TAKER_SEED,
     IMPOSTOR_SEED,
     WAITING,
-    MAKER_SALT,
+    TAKER_SALT,
     EGG_ID,
     WRONG_ASSET_ID,
     MAKER_MEDIUM_DUCK,
@@ -44,7 +44,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
         it('Invalid slot revert', async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(10, worstRange, mediumRange, bestRange, generateCommit(randoms, MAKER_SALT), BET), MAKER_SEED)
+                    makeGameTx(10, worstRange, mediumRange, bestRange, generateCommit(randoms), BET), MAKER_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], 'Invalid slot')
@@ -54,7 +54,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
         it('Invalid bet asset revert', async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms, MAKER_SALT), 1, WRONG_ASSET_ID), MAKER_SEED)
+                    makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms), 1, WRONG_ASSET_ID), MAKER_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "You can attach only EGGs with the following asset id - " + EGG_ID)
@@ -64,7 +64,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
         it('Invalid bet amount revert (ONLY BETA!!!)', async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms, MAKER_SALT), BET + 1), MAKER_SEED)
+                    makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms), BET + 1), MAKER_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Bet must be 0.0001 EGG during beta test")
@@ -74,7 +74,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
         it('Invalid range for the worst duck revert', async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(0, 0, 2, 3, generateCommit(randoms, MAKER_SALT), BET), MAKER_SEED)
+                    makeGameTx(0, 0, 2, 3, generateCommit(randoms), BET), MAKER_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], 'Invalid range for the worst duck')
@@ -84,7 +84,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
         it('Invalid range for the medium duck revert', async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(0, 1, 6, 3, generateCommit(randoms, MAKER_SALT), BET), MAKER_SEED)
+                    makeGameTx(0, 1, 6, 3, generateCommit(randoms), BET), MAKER_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], 'Invalid range for the medium duck')
@@ -94,7 +94,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
         it('Invalid range for the best duck revert', async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(0, 1, 2, 10, generateCommit(randoms, MAKER_SALT), BET), MAKER_SEED)
+                    makeGameTx(0, 1, 2, 10, generateCommit(randoms), BET), MAKER_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], 'Invalid range for the best duck')
@@ -104,7 +104,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
         it('Medium < worst revert', async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(0, 2, 1, 3, generateCommit(randoms, MAKER_SALT), BET), MAKER_SEED)
+                    makeGameTx(0, 2, 1, 3, generateCommit(randoms), BET), MAKER_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "The medium range can't be less than the worst one")
@@ -114,7 +114,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
         it('Best < medium revert', async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(0, 2, 2, 1, generateCommit(randoms, MAKER_SALT), BET), MAKER_SEED)
+                    makeGameTx(0, 2, 2, 1, generateCommit(randoms), BET), MAKER_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "The best range can't be worse than the medium one")
@@ -127,7 +127,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
             const height = await getBlockHeight();
 
             await broadcastTx(invokeScript(
-                makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms, MAKER_SALT), BET), MAKER_SEED)
+                makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms), BET), MAKER_SEED)
             );
 
             const currentPlayerGame = await getPlayerCurrentGame(address(MAKER_SEED, TEST_NET_CHAIN_ID));
@@ -147,7 +147,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
             assert.equal(worstRangeStored, worstRange);
             assert.equal(mediumRangeStored, mediumRange);
             assert.equal(bestRangeStored, bestRange);
-            assert.equal(makerRandomsCommit, generateCommit(randoms, MAKER_SALT))
+            assert.equal(makerRandomsCommit, generateCommit(randoms))
             assert.approximately(waitingExpirationHeight, height + WAITING, 1);
             assert.equal(gameId, slotGameId);
             assert.equal(gameId + 1, nextGameId);
@@ -156,7 +156,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
         it("Can't make another game", async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms, MAKER_SALT), BET), MAKER_SEED)
+                    makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms), BET), MAKER_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], 'You already have an active game')
@@ -166,7 +166,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
         it("Can't occupy a busy slot", async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms, MAKER_SALT), BET), IMPOSTOR_SEED)
+                    makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms), BET), IMPOSTOR_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], 'This slot is busy')
@@ -197,14 +197,13 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
             const randomsArr = randoms.split("|").map(Number)
 
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     randomsArr[0],
                     randomsArr[1],
                     randomsArr[2],
                     randomsArr[3],
                     randomsArr[4],
                     randomsArr[5],
-                    MAKER_SALT,
                     2,
                     MAKER_MEDIUM_DUCK),
                     MAKER_SEED));
@@ -217,14 +216,13 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
             const randomsArr = randoms.split("|").map(Number)
 
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     randomsArr[0],
                     randomsArr[1],
                     randomsArr[2],
                     randomsArr[3],
                     randomsArr[4],
                     randomsArr[5],
-                    MAKER_SALT,
                     2,
                     TAKER_MEDIUM_DUCK),
                     TAKER_SEED));
@@ -251,7 +249,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Maker can't commit order (taker method)", async function () {
             try {
-                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3', MAKER_SALT)), MAKER_SEED));
+                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3' + TAKER_SALT)), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
             }
@@ -259,7 +257,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Taker can't commit order", async function () {
             try {
-                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3', MAKER_SALT)), TAKER_SEED));
+                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3' + TAKER_SALT)), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
             }
@@ -283,7 +281,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Maker can't reveal order (taker method)", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', MAKER_SALT), MAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', TAKER_SALT), MAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Only taker can call this method");
             }
@@ -291,7 +289,7 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
 
         it("Taker can't reveal order", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', MAKER_SALT), TAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', TAKER_SALT), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "You don't have an active game");
             }

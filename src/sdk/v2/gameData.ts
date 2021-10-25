@@ -172,3 +172,13 @@ export const getGamesPlayed = async (): Promise<number> => {
         return 0
     }
 }
+
+// --- FEE ---
+
+export const getTotalFee = async (): Promise<number> => {
+    try {
+        return (await getData("totalFee"))[0].value as number;
+    } catch (err) {
+        return 0
+    }
+}

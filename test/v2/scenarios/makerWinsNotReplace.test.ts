@@ -3,26 +3,28 @@ import {
     RANDOMS2,
     TAKER_SALT,
     MAKER_SEED,
-    TAKER_SEED,
+    TAKER_SEED, TAKER_BEST_DUCK, TAKER_MEDIUM_DUCK,
 } from "../../../src/settings";
 import { makeGameTest } from "../makeGame.test";
 import { takeGameTest } from "../takeGame.test";
-import { revealRandomsAndReplaceMakerTest } from "../revealRandomsAndReplaceMaker.test";
+import { replaceMakerTest } from "../replaceMaker.test";
+import { replaceTakerTest } from "../replaceTaker.test";
 import { commitOrderTakerTest } from "../commitOrderTaker.test";
 import { setOrderMakerTest } from "../setOrderMaker.test";
 import { revealOrderTakerTest } from "../revealOrderTaker.test";
 
 
-describe('Taker wins. Replace', async function () {
+describe('Maker wins. No replace', async function () {
     this.timeout(120000);
 
     makeGameTest(RANDOMS1, 2, 3, 4);
     takeGameTest(RANDOMS2, true);
 
     // Step1. Maker: 12|21|31, Taker: 17|26|33
-    revealRandomsAndReplaceMakerTest(RANDOMS1, 0, "", "", true);
+    replaceMakerTest(RANDOMS1, 0, "", "", true);
 
     // Step2. Skipped
+    // replaceTakerTest(0, "", "");
 
     // Step3. 17|26|33
     commitOrderTakerTest("1|2|3", TAKER_SALT);

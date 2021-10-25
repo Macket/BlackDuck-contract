@@ -19,21 +19,26 @@
 #
 
 # Mainnet
-# let farmingAddress = base58'3PAETTtuW7aSiyKtn9GuML3RgtV1xdq1mQW'
-# let rarityProviderAddress = base58'3PMSJXA6nm5AsB8Kr2h1uW2mLrCmb57kpwA'
+let farmingAddress = base58'3PAETTtuW7aSiyKtn9GuML3RgtV1xdq1mQW'
+let rarityProviderAddress = base58'3PMSJXA6nm5AsB8Kr2h1uW2mLrCmb57kpwA'
 
-# let eggsAssetId = base58'C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS'
+let eggsAssetId = base58'C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS'
+
+let feeAggregatorAddress = base58'3PM6dDuKp33bBfV9SnR8zaQNQxXCQsBaJs9'
 
 # Testnet
-let farmingAddress = base58'3NBznG19rEYUAcnukTRTtwJHBVKQLbobVdC'
-let rarityProviderAddress = base58'3NCman4dCzk1HWWU4DPTr5rsbhvuUCwwUZh'
+# let farmingAddress = base58'3NBznG19rEYUAcnukTRTtwJHBVKQLbobVdC'
+# let rarityProviderAddress = base58'3NCman4dCzk1HWWU4DPTr5rsbhvuUCwwUZh'
 
-let eggsAssetId = base58'AjXHBGsVDeXETQPk3qH4CPbZdfXPyNo5XoBx7jVbtwWG'
+# let eggsAssetId = base58'AjXHBGsVDeXETQPk3qH4CPbZdfXPyNo5XoBx7jVbtwWG'
+
+# let feeAggregatorAddress = base58'3MwikA4opnqZMGVriWzH8Gq2CJXuaVBdboH'
 
 
 let SLOTS = 10
 let WAITING = 8
 let stepDuration = 5
+let feePercent = 10
 
 func tryGetInteger(key: String) = {
     match getInteger(this, key) {
@@ -263,6 +268,16 @@ func getGamesPlayed() = {
     tryGetInteger(getGamesPlayedKey())
 }
 
+# --- FEE ---
+
+func getTotalFeeKey() = {
+    "totalFee"
+}
+
+func getTotalFee() = {
+    tryGetInteger(getTotalFeeKey())
+}
+
 # -----------------------------
 
 func getFarmingPower(address: String, assetId: String) = {
@@ -299,9 +314,8 @@ func getScore(a: Int, b: Int) = {
 }
 
 func getWinner(gameId: Int, takerOrderStr: String, expired: Boolean) = {
-  let step = getStep(gameId)
-
   if (expired) then {
+    let step = getStep(gameId)
     let expirationHeight = getExpirationHeight(gameId)
 
     if (step == 0) then throw("Game is not started")
@@ -336,6 +350,8 @@ func getGameResult(gameId: Int, takerOrder: String, expired: Boolean) = {
     let winnerAddress = if (winner == "maker") then makerAddress else if (winner == "taker") then takerAddress else ""
     let loserAddress = if (winner == "taker") then makerAddress else if (winner == "maker") then takerAddress else ""
 
+    let fee = fraction(bet, feePercent, 100)
+
     if (winnerAddress != "") then {
         [
             IntegerEntry(getPlayerCurrentGameKey(winnerAddress), 0),
@@ -344,11 +360,13 @@ func getGameResult(gameId: Int, takerOrder: String, expired: Boolean) = {
             IntegerEntry(getPlayerLosesKey(loserAddress), getPlayerLoses(loserAddress) + 1),
             StringEntry(getPlayerResultKey(gameId, winnerAddress), "win"),
             StringEntry(getPlayerResultKey(gameId, loserAddress), "lose"),
-            IntegerEntry(getPlayerPrizeKey(gameId, winnerAddress), bet),
+            IntegerEntry(getPlayerPrizeKey(gameId, winnerAddress), bet - fee),
             IntegerEntry(getPlayerPrizeKey(gameId, loserAddress), -bet),
-            IntegerEntry(getPlayerPnLKey(winnerAddress), getPlayerPnL(winnerAddress) + bet),
+            IntegerEntry(getPlayerPnLKey(winnerAddress), getPlayerPnL(winnerAddress) + bet - fee),
             IntegerEntry(getPlayerPnLKey(loserAddress), getPlayerPnL(loserAddress) - bet),
-            ScriptTransfer(Address(winnerAddress.fromBase58String()), bet * 2, eggsAssetId)
+            IntegerEntry(getTotalFeeKey(), getTotalFee() + fee),
+            ScriptTransfer(Address(winnerAddress.fromBase58String()), bet * 2 - fee, eggsAssetId),
+            ScriptTransfer(Address(feeAggregatorAddress), fee, eggsAssetId)
         ]
     } else {
         [
@@ -452,7 +470,7 @@ func kickGame(slot: Int) = {
 }
 
 @Callable(i)
-func revealRandomsAndReplaceMaker(random1: Int, random2: Int, random3: Int, random4: Int, random5: Int, random6: Int, salt: String, replacePosition: Int, duckId: String) = {
+func replaceMaker(random1: Int, random2: Int, random3: Int, random4: Int, random5: Int, random6: Int, replacePosition: Int, duckId: String) = {
     let callerAddress = toBase58String(i.caller.bytes)
     let gameId = getPlayerCurrentGame(callerAddress)
     let playerRole = getPlayerRole(gameId, callerAddress)
@@ -464,7 +482,7 @@ func revealRandomsAndReplaceMaker(random1: Int, random2: Int, random3: Int, rand
     let makerRandomsStr = toString(random1) + "|" + toString(random2) + "|" + toString(random3) + "|" + toString(random4) + "|" + toString(random5) + "|" + toString(random6)
     let takerRandoms = split(getRandoms(gameId, "taker"), "|")
 
-    let rarityToReplace = if (replacePosition == 1 || replacePosition == 2 || replacePosition == 3) then {
+    let replaceRarity = if (replacePosition == 1 || replacePosition == 2 || replacePosition == 3) then {
       strict invokeRes = invoke(Address(rarityProviderAddress), "getAssetRarity", [duckId], [])
       let rarity = match invokeRes {
           case r : Int => r
@@ -481,9 +499,9 @@ func revealRandomsAndReplaceMaker(random1: Int, random2: Int, random3: Int, rand
       0
     }
 
-    let worstRarityMaker = if (replacePosition == 1) then rarityToReplace else getRandomRarity(random1 + parseIntValue(takerRandoms[0]), ranges[0])
-    let mediumRarityMaker = if (replacePosition == 2) then rarityToReplace else getRandomRarity(random2 + parseIntValue(takerRandoms[1]), ranges[1])
-    let bestRarityMaker = if (replacePosition == 3) then rarityToReplace else getRandomRarity(random3 + parseIntValue(takerRandoms[2]), ranges[2])
+    let worstRarityMaker = if (replacePosition == 1) then replaceRarity else getRandomRarity(random1 + parseIntValue(takerRandoms[0]), ranges[0])
+    let mediumRarityMaker = if (replacePosition == 2) then replaceRarity else getRandomRarity(random2 + parseIntValue(takerRandoms[1]), ranges[1])
+    let bestRarityMaker = if (replacePosition == 3) then replaceRarity else getRandomRarity(random3 + parseIntValue(takerRandoms[2]), ranges[2])
 
     let worstRarityTaker = getRandomRarity(random4 + parseIntValue(takerRandoms[3]), ranges[0])
     let mediumRarityTaker = getRandomRarity(random5 + parseIntValue(takerRandoms[4]), ranges[1])
@@ -501,7 +519,7 @@ func revealRandomsAndReplaceMaker(random1: Int, random2: Int, random3: Int, rand
     else if (random4 < 0 || random4 > 1000000000000) then throw("Invalid random4")
     else if (random5 < 0 || random5 > 1000000000000) then throw("Invalid random5")
     else if (random6 < 0 || random6 > 1000000000000) then throw("Invalid random6")
-    else if (toBase58String(sha256(toBytes(makerRandomsStr + salt))) != makerRandomsCommit) then throw("Randoms don't match commit")
+    else if (toBase58String(sha256(toBytes(makerRandomsStr))) != makerRandomsCommit) then throw("Randoms don't match commit")
     else {
         [
             StringEntry(getRandomsKey(gameId, "maker"), makerRandomsStr),
@@ -521,15 +539,24 @@ func replaceTaker(replacePosition: Int, duckId: String) = {
     let gameId = getPlayerCurrentGame(callerAddress)
     let playerRole = getPlayerRole(gameId, callerAddress)
     let step = getStep(gameId)
-    let rangesRaw = split(getRanges(gameId), "|")
-    let ranges = [parseIntValue(rangesRaw[0]), parseIntValue(rangesRaw[1]), parseIntValue(rangesRaw[2])]
 
-    let range = ranges[replacePosition - 1]
+    let replaceRarity = if (replacePosition == 1 || replacePosition == 2 || replacePosition == 3) then {
+      strict invokeRes = invoke(Address(rarityProviderAddress), "getAssetRarity", [duckId], [])
+      let rarity = match invokeRes {
+          case r : Int => r
+          case _ => throw("Incorrect invoke result")
+      }
 
-    strict invokeRes = invoke(Address(rarityProviderAddress), "getAssetRarity", [duckId], [])
-    let replaceRarity = match invokeRes {
-        case r : Int => r
-        case _ => throw("Incorrect invoke result")
+      let rangesRaw = split(getRanges(gameId), "|")
+      let ranges = [parseIntValue(rangesRaw[0]), parseIntValue(rangesRaw[1]), parseIntValue(rangesRaw[2])]
+      let replaceRange = ranges[replacePosition - 1]
+
+      if (!checkDuckOwner(i.caller, duckId.fromBase58String())) then throw("Asset " + duckId + " doesn't belong to you")
+      else if (replaceRange < 5 && (rarity > replaceRange * 10 || rarity <= (replaceRange - 1) * 10)) then throw("Duck doesn't fit rarity range")
+      else if (replaceRange == 5 && rarity <= 40) then throw("Duck doesn't fit rarity replaceRange")
+      else rarity
+    } else {
+      0
     }
 
     let rarities = split(getRarities(gameId, "taker"), "|")
@@ -540,13 +567,8 @@ func replaceTaker(replacePosition: Int, duckId: String) = {
 
     if (gameId == 0) then throw("You don't have an active game")
     else if (playerRole != "taker") then throw("Only taker can call this method")
-    else if (replacePosition != 1 && replacePosition != 2 && replacePosition != 3) then throw("Invalid replace position - " + toString(replacePosition)  + ". Must be 1, 2 or 3")
-    else if (getExpirationHeight(gameId) == 0) then throw("Game is not started")
     else if (step < 2) then throw("This step is not started")
     else if (step > 2) then throw("This step is finished")
-    else if (!checkDuckOwner(i.caller, duckId.fromBase58String())) then throw("Asset " + duckId + " doesn't belong to you")
-    else if (range < 5 && (replaceRarity > range * 10 || replaceRarity <= (range - 1) * 10)) then throw("Duck doesn't fit rarity range")
-    else if (range == 5 && replaceRarity <= 40) then throw("Duck doesn't fit rarity range")
     else {
         [
             StringEntry(getRaritiesKey(gameId, "taker"), newRarities[0] + "|" + newRarities[1] + "|" + newRarities[2]),
@@ -612,7 +634,10 @@ func revealOrderTaker(order: String, salt: String) = {
     else if(order != "1|2|3" && order != "1|3|2" && order != "2|1|3" && order != "2|3|1" && order != "3|1|2" && order != "3|2|1") then throw("Invalid order data")
     else if (toBase58String(sha256(toBytes(order + salt))) != getTakerOrderCommit(gameId)) then throw("Reveal doesn't match commit")
     else {
-      getGameResult(gameId, order, false) ++ [StringEntry(getOrderKey(gameId, playerRole), order)]
+        getGameResult(gameId, order, false) ++ [
+        StringEntry(getOrderKey(gameId, playerRole), order),
+        IntegerEntry(getStepKey(gameId), step + 1)
+        ]
     }
 }
 

@@ -30,7 +30,7 @@ import {
     STEP_DURATION,
     WRONG_ASSET_ID,
     EGG_ID,
-    MAKER_SALT,
+    TAKER_SALT,
     TAKER_MEDIUM_DUCK,
 } from "../../src/settings";
 
@@ -438,7 +438,7 @@ export const takeGameTest = (randoms: string, skipReplace: boolean) => {
 
         it("Taker can't commit order", async function () {
             try {
-                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3', MAKER_SALT)), TAKER_SEED));
+                await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3' + TAKER_SALT)), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }
@@ -454,7 +454,7 @@ export const takeGameTest = (randoms: string, skipReplace: boolean) => {
 
         it("Taker can't reveal order", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', MAKER_SALT), TAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', TAKER_SALT), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }

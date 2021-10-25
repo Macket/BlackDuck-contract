@@ -14,12 +14,14 @@ import {
     getPlayerDraws,
     getEggBalance,
     getPlayerPnL,
+    getTotalFee,
 } from "../../src/sdk/v2/gameData";
 import {
     MAKER_SEED,
     TAKER_SEED,
     IMPOSTOR_SEED,
     TAKER_SALT,
+    FEE_PERCENT, FEE_AGGREGATOR
 } from "../../src/settings";
 
 export const revealOrderTakerTest = (order: string, wrongOrder: string, winnerSeed: string, loserSeed: string, draw: boolean) => {
@@ -77,6 +79,8 @@ export const revealOrderTakerTest = (order: string, wrongOrder: string, winnerSe
                 const winnerPnLBefore = await getPlayerPnL(winnerAddress);
                 const loserPnLBefore = await getPlayerPnL(loserAddress);
                 const winnerEggBalanceBefore = await getEggBalance(winnerAddress);
+                const feeAggregatorBalanceBefore = await getEggBalance(FEE_AGGREGATOR);
+                const totalFeeBefore = await getTotalFee();
 
                 await broadcastTx(invokeScript(revealOrderTakerTx(order, TAKER_SALT), TAKER_SEED));
 
@@ -92,6 +96,10 @@ export const revealOrderTakerTest = (order: string, wrongOrder: string, winnerSe
                 const winnerPnLAfter = await getPlayerPnL(winnerAddress);
                 const loserPnLAfter = await getPlayerPnL(loserAddress);
                 const winnerEggBalanceAfter = await getEggBalance(winnerAddress);
+                const feeAggregatorBalanceAfter = await getEggBalance(FEE_AGGREGATOR);
+                const totalFeeAfter = await getTotalFee();
+
+                const expectedFee = bet * FEE_PERCENT / 100;
 
                 assert.equal(takerOrder, order);
                 assert.equal(winnerCurrentGame, 0);
@@ -100,11 +108,13 @@ export const revealOrderTakerTest = (order: string, wrongOrder: string, winnerSe
                 assert.equal(loserLosesAfter, loserLosesBefore + 1);
                 assert.equal(winnerResult, "win");
                 assert.equal(loserResult, "lose");
-                assert.equal(winnerPrize, bet);
+                assert.equal(winnerPrize, bet - expectedFee);
                 assert.equal(loserPrize, -bet);
-                assert.equal(winnerPnLAfter, winnerPnLBefore + bet);
+                assert.equal(winnerPnLAfter, winnerPnLBefore + bet - expectedFee);
                 assert.equal(loserPnLAfter, loserPnLBefore - bet);
-                assert.equal(winnerEggBalanceAfter - winnerEggBalanceBefore, bet * 2, "Winner EGG balance error");
+                assert.equal(winnerEggBalanceAfter - winnerEggBalanceBefore, bet * 2 - expectedFee, "Winner EGG balance error");
+                assert.equal(feeAggregatorBalanceAfter - feeAggregatorBalanceBefore, expectedFee, "Fee aggregator EGG balance error");
+                assert.equal(totalFeeAfter - totalFeeBefore, expectedFee, "Total fee error");
             });
         }
 

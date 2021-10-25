@@ -48,38 +48,35 @@ export const replaceTakerTest = (replacePosition: number, duckId: string, wrongR
             }
         });
 
-        it("Wrong range format revert", async function () {
-            try {
-                await broadcastTx(invokeScript(replaceTakerTx(124, duckId), TAKER_SEED));
-            } catch (err) {
-                assert.strictEqual(err.message.split(': ')[1], "Invalid replace position - 124. Must be 1, 2 or 3");
-            }
-        });
+        if ([1, 2, 3].includes(replacePosition)) {
+            it("Invalid asset revert", async function () {
+                try {
+                    await broadcastTx(invokeScript(replaceTakerTx(replacePosition, EGG_ID), TAKER_SEED));
+                } catch (err) {
+                    assert.isTrue(err.message.split(': ')[1].includes('not valid NFT'));
+                }
+            });
+        }
 
-        it("Invalid asset revert", async function () {
-            try {
-                await broadcastTx(invokeScript(replaceTakerTx(replacePosition, EGG_ID), TAKER_SEED));
-            } catch (err) {
-                assert.isTrue(err.message.split(': ')[1].includes('not valid NFT'));
-            }
-        });
+        if ([1, 2, 3].includes(replacePosition)) {
+            it("Can't play with alien duck", async function () {
+                try {
+                    await broadcastTx(invokeScript(replaceTakerTx(replacePosition, MAKER_BEST_DUCK), TAKER_SEED));
+                } catch (err) {
+                    assert.strictEqual(err.message.split(': ')[1], "Asset " + MAKER_BEST_DUCK + " doesn't belong to you");
+                }
+            });
+        }
 
-        it("Can't play with alien duck", async function () {
-            try {
-                await broadcastTx(invokeScript(replaceTakerTx(replacePosition, MAKER_BEST_DUCK), TAKER_SEED));
-            } catch (err) {
-                assert.strictEqual(err.message.split(': ')[1], "Asset " + MAKER_BEST_DUCK + " doesn't belong to you");
-            }
-        });
-
-        it("Duck doesn't fit rarity range revert", async function () {
-            try {
-                await broadcastTx(invokeScript(replaceTakerTx(replacePosition, wrongRarityDuckId), TAKER_SEED));
-            } catch (err) {
-                assert.strictEqual(err.message.split(': ')[1], "Duck doesn't fit rarity range");
-            }
-        });
-
+        if ([1, 2, 3].includes(replacePosition)) {
+            it("Duck doesn't fit rarity range revert", async function () {
+                try {
+                    await broadcastTx(invokeScript(replaceTakerTx(replacePosition, wrongRarityDuckId), TAKER_SEED));
+                } catch (err) {
+                    assert.strictEqual(err.message.split(': ')[1], "Duck doesn't fit rarity range");
+                }
+            });
+        }
 
         it("Taker replaces", async function () {
             const height = await getBlockHeight();
@@ -93,9 +90,10 @@ export const replaceTakerTest = (replacePosition: number, duckId: string, wrongR
             const gameStep = await getStep(gameId);
             const expirationHeight = await getExpirationHeight(gameId);
 
-            const replacedRarity = await calcRarity(duckId);
-
-            assert.equal(takerBestRarity, replacedRarity);
+            if ([1, 2, 3].includes(replacePosition)) {
+                const replacedRarity = await calcRarity(duckId);
+                assert.equal(takerBestRarity, replacedRarity);
+            }
             assert.equal(takerReplacedRange, replacePosition);
             assert.equal(takerDuckId, duckId);
             assert.equal(gameStep, 3);

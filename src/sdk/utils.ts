@@ -6,7 +6,7 @@ export const broadcastTx = async (tx): Promise<void> => {
     await waitForTx(tx.id, { apiBase: 'https://nodes-testnet.wavesnodes.com' });
 };
 
-export const generateCommit = (secret: string, salt: string): string => base58Encode(sha256(stringToBytes(secret + salt)));
+export const generateCommit = (secret: string): string => base58Encode(sha256(stringToBytes(secret)));
 
 export const arrayItemAt = (arr: any[], index: number) => {
     const _index = index % arr.length;

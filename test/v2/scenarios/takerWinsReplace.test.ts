@@ -11,7 +11,7 @@ import {
 } from "../../../src/settings";
 import { makeGameTest } from "../makeGame.test";
 import { takeGameTest } from "../takeGame.test";
-import { revealRandomsAndReplaceMakerTest } from "../revealRandomsAndReplaceMaker.test";
+import { replaceMakerTest } from "../replaceMaker.test";
 import { replaceTakerTest } from "../replaceTaker.test";
 import { commitOrderTakerTest } from "../commitOrderTaker.test";
 import { setOrderMakerTest } from "../setOrderMaker.test";
@@ -25,7 +25,7 @@ describe('Taker wins. Replace', async function () {
     takeGameTest(RANDOMS2, false);
 
     // Step1. Maker: 12|22(r)|31, Taker: 17|26|33
-    revealRandomsAndReplaceMakerTest(RANDOMS1, 2, MAKER_MEDIUM_DUCK, MAKER_BEST_DUCK, false);
+    replaceMakerTest(RANDOMS1, 2, MAKER_MEDIUM_DUCK, MAKER_BEST_DUCK, false);
 
     // Step2. Taker replaces 33 with 37. Now Maker: 12|22(r)|31, Taker: 17|26|37(r)
     replaceTakerTest(3, TAKER_BEST_DUCK, TAKER_MEDIUM_DUCK);

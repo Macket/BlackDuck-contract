@@ -75,21 +75,20 @@ export const kickGameTx = (slot: number): IInvokeScriptParams => ({
     chainId: CHAIN_ID,
 });
 
-export const revealRandomsAndReplaceMakerTx = (
+export const replaceMakerTx = (
     random1: number,
     random2: number,
     random3: number,
     random4: number,
     random5: number,
     random6: number,
-    salt: string,
     replacePosition: number,
     duckId: string
 ): IInvokeScriptParams => ({
     dApp: GAME_ADDRESS,
     fee: 500000,
     call: {
-        function: "revealRandomsAndReplaceMaker",
+        function: "replaceMaker",
         args: [
             { type: 'integer', value: random1 },
             { type: 'integer', value: random2 },
@@ -97,7 +96,6 @@ export const revealRandomsAndReplaceMakerTx = (
             { type: 'integer', value: random4 },
             { type: 'integer', value: random5 },
             { type: 'integer', value: random6 },
-            { type: "string", value: salt },
             { type: "integer", value: replacePosition },
             { type: "string", value: duckId },
         ]

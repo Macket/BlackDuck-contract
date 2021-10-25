@@ -5,7 +5,7 @@ import {broadcastTx, arrayItemAt, generateCommit} from "../../src/sdk/utils";
 import {
     commitOrderTakerTx, getPrizeExpiredTx,
     replaceTakerTx, revealOrderTakerTx,
-    revealRandomsAndReplaceMakerTx,
+    replaceMakerTx,
     setOrderMakerTx
 } from "../../src/sdk/v2/gameTransactions";
 import {
@@ -23,7 +23,7 @@ import {
 import {
     MAKER_SEED,
     TAKER_SEED,
-    MAKER_SALT,
+    TAKER_SALT,
     IMPOSTOR_SEED,
     STEP_DURATION,
     EGG_ID,
@@ -32,21 +32,20 @@ import {
     RANGES,
 } from "../../src/settings";
 
-export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPosition: number, duckId: string, wrongRarityDuckId: string, skipReplace: boolean) => {
+export const replaceMakerTest = (randoms: string, replacedPosition: number, duckId: string, wrongRarityDuckId: string, skipReplace: boolean) => {
     describe('Reveal Randoms And Replace Maker', function () {
         this.timeout(120000);
         const makerRandoms: number[] = randoms.split("|").map(Number);
 
         it("Impostor can't call", async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     IMPOSTOR_SEED));
@@ -57,14 +56,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it("Taker can't call", async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     TAKER_SEED));
@@ -75,14 +73,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it("Invalid asset revert", async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     1,
                     EGG_ID),
                     MAKER_SEED));
@@ -93,14 +90,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it("Can't play with alien duck", async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     2,
                     TAKER_MEDIUM_DUCK),
                     MAKER_SEED));
@@ -112,14 +108,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
         if (replacedPosition === 1 || replacedPosition === 2 || replacedPosition === 3) {
             it("Duck doesn't fit rarity range revert", async function () {
                 try {
-                    await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                    await broadcastTx(invokeScript(replaceMakerTx(
                         makerRandoms[0],
                         makerRandoms[1],
                         makerRandoms[2],
                         makerRandoms[3],
                         makerRandoms[4],
                         makerRandoms[5],
-                        MAKER_SALT,
                         replacedPosition,
                         wrongRarityDuckId),
                         MAKER_SEED));
@@ -131,14 +126,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it("Randoms don't match commit revert", async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     76321,
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -149,14 +143,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random1 revert (<0)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     -1,
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -167,14 +160,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random1 revert (>1T)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     1000000000001,
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -185,14 +177,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random2 revert (<0)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     -1,
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -203,14 +194,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random2 revert (>1T)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     1000000000001,
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -221,14 +211,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random3 revert (<0)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     -1,
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -239,14 +228,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random3 revert (>1T)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     1000000000001,
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -257,14 +245,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random4 revert (<0)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     -1,
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -275,14 +262,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random4 revert (>1T)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     1000000000001,
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -293,14 +279,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random5 revert (<0)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     -1,
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -311,14 +296,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random5 revert (>1T)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     1000000000001,
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -329,14 +313,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random6 revert (<0)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     -1,
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -347,14 +330,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it('Invalid random6 revert (>1T)', async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     1000000000001,
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -367,14 +349,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
             const gameId = await getPlayerCurrentGame(address(MAKER_SEED, TEST_NET_CHAIN_ID));
             const height = await getBlockHeight();
 
-            await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+            await broadcastTx(invokeScript(replaceMakerTx(
                 makerRandoms[0],
                 makerRandoms[1],
                 makerRandoms[2],
                 makerRandoms[3],
                 makerRandoms[4],
                 makerRandoms[5],
-                MAKER_SALT,
                 replacedPosition,
                 duckId),
                 MAKER_SEED));
@@ -414,14 +395,13 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it("Maker can't call again", async function () {
             try {
-                await broadcastTx(invokeScript(revealRandomsAndReplaceMakerTx(
+                await broadcastTx(invokeScript(replaceMakerTx(
                     makerRandoms[0],
                     makerRandoms[1],
                     makerRandoms[2],
                     makerRandoms[3],
                     makerRandoms[4],
                     makerRandoms[5],
-                    MAKER_SALT,
                     replacedPosition,
                     duckId),
                     MAKER_SEED));
@@ -443,7 +423,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
         if (!skipReplace) {
             it("Taker can't commit order", async function () {
                 try {
-                    await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3', MAKER_SALT)), TAKER_SEED));
+                    await broadcastTx(invokeScript(commitOrderTakerTx(generateCommit('1|2|3' + TAKER_SALT)), TAKER_SEED));
                 } catch (err) {
                     assert.strictEqual(err.message.split(': ')[1], "This step is not started");
                 }
@@ -460,7 +440,7 @@ export const revealRandomsAndReplaceMakerTest = (randoms: string, replacedPositi
 
         it("Taker can't reveal order", async function () {
             try {
-                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', MAKER_SALT), TAKER_SEED));
+                await broadcastTx(invokeScript(revealOrderTakerTx('1|2|3', TAKER_SALT), TAKER_SEED));
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "This step is not started");
             }

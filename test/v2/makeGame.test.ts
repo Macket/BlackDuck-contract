@@ -39,7 +39,7 @@ import {
 export const makeGameTest = (randoms: string, worstRange: number, mediumRange: number, bestRange: number) => {
     describe('Make Game', function () {
         this.timeout(120000);
-        const BET = 10000;
+        const BET = 1000000;
 
         it('Invalid slot revert', async function () {
             try {
@@ -61,10 +61,10 @@ export const makeGameTest = (randoms: string, worstRange: number, mediumRange: n
             }
         });
 
-        it('Invalid bet amount revert (ONLY BETA!!!)', async function () {
+        it('Invalid bet amount revert', async function () {
             try {
                 await broadcastTx(invokeScript(
-                    makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms), BET + 1), MAKER_SEED)
+                    makeGameTx(0, worstRange, mediumRange, bestRange, generateCommit(randoms), 10000), MAKER_SEED)
                 );
             } catch (err) {
                 assert.strictEqual(err.message.split(': ')[1], "Bet must be 0.0001 EGG during beta test")

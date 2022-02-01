@@ -2,8 +2,13 @@
 {-# CONTENT_TYPE DAPP #-}
 {-# SCRIPT_TYPE ACCOUNT #-}
 
-let incubatorAddress = base58'3MtBigTsaeevrcJAEwVcr4quwkqcrtnjoAh' # <-- change
-let breederAddress = base58'3N285kYUMxPi6oZsdWrxhSY34dJHyu4kRN5' # <-- change
+# Mainnet
+let incubatorAddress = base58'3PEktVux2RhchSN63DsDo4b4mz4QqzKSeDv'
+let breederAddress = base58'3PDVuU45H7Eh5dmtNbnRNRStGwULA7NY6Hb'
+
+# Testnet
+# let incubatorAddress = base58'3MtBigTsaeevrcJAEwVcr4quwkqcrtnjoAh'
+# let breederAddress = base58'3N285kYUMxPi6oZsdWrxhSY34dJHyu4kRN5'
 
 # --- DUCKS FARMING METHODS ---
 
@@ -15,6 +20,8 @@ func isSymbolE(accumulated: Int, sym: String) = { if (sym == "E") then {accumula
 func isSymbolF(accumulated: Int, sym: String) = { if (sym == "F") then {accumulated+1} else {accumulated+0} }
 func isSymbolG(accumulated: Int, sym: String) = { if (sym == "G") then {accumulated+1} else {accumulated+0} }
 func isSymbolH(accumulated: Int, sym: String) = { if (sym == "H") then {accumulated+1} else {accumulated+0} }
+func isSymbolI(accumulated: Int, sym: String) = { if (sym == "I") then {accumulated+1} else {accumulated+0} }
+
 
 func getAmountOrClear(amount: String) = {
   if (amount.contains("0")) then {""} else {amount}
@@ -25,7 +32,7 @@ func getGen(assetName: String) = {
   let genotype = assetName.drop(5).dropRight(3).split("")
   getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolA)) + "A") + getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolB)) + "B") + getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolC)) + "C") +
   getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolD)) + "D") + getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolE)) + "E") + getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolF)) + "F") +
-  getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolG)) + "G") + getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolH)) + "H")
+  getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolG)) + "G") + getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolH)) + "H") + getAmountOrClear(toString(FOLD<8>(genotype, 0, isSymbolI)) + "I")
 }
 
 func getAssetOrigin(generation: String) = {
@@ -46,12 +53,20 @@ func getAssetRarity(assetId: String) = {
   let assetIdBytes = assetId.fromBase58String()
   if (assetInfo(assetIdBytes).value().issuer == Address(breederAddress) || assetInfo(assetIdBytes).value().issuer == Address(incubatorAddress)) then {
     let assetName = assetInfo(assetIdBytes).value().name
-    let generation = assetName.takeRight(2).take(1)
-    let gen = getGen(assetName) + "-" + generation
-    (
-      [],
-      calcAssetRarity(gen, generation)
-    )
+
+    if (assetName.value().takeRight(1) == "U") then {
+      (
+        [],
+        100
+      )
+    } else {
+      let generation = assetName.takeRight(2).take(1)
+      let gen = getGen(assetName) + "-" + generation
+      (
+        [],
+        calcAssetRarity(gen, generation)
+      )
+    }
   } else {
     throw("not valid NFT")
   }

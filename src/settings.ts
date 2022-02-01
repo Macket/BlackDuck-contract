@@ -1,7 +1,9 @@
+import { _MAKER_SEED, _TAKER_SEED, _IMPOSTOR_SEED } from "./seeds";
+
 // --- COMMON ---
-export const MAKER_SEED = ""
-export const TAKER_SEED = ""
-export const IMPOSTOR_SEED = ""
+export const MAKER_SEED = _MAKER_SEED;
+export const TAKER_SEED = _TAKER_SEED;
+export const IMPOSTOR_SEED = _IMPOSTOR_SEED;
 
 export const EGG_ID = "AjXHBGsVDeXETQPk3qH4CPbZdfXPyNo5XoBx7jVbtwWG"
 export const WRONG_ASSET_ID = "3VUCuh9dWqe54SdzzNUkXhFXpc8UQynnJVh42B7MjNzN" // Old EGG

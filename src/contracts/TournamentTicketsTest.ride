@@ -1,0 +1,60 @@
+{-# STDLIB_VERSION 5 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+let eggAssetId = base58'AjXHBGsVDeXETQPk3qH4CPbZdfXPyNo5XoBx7jVbtwWG'
+let investmentAmount = 100000000
+
+let adminAddress = base58'3MwikA4opnqZMGVriWzH8Gq2CJXuaVBdboH'
+
+func tryGetBoolean(key: String) = {
+    match getBoolean(this, key) {
+        case b:Boolean => b
+        case _ => false
+    }
+}
+
+func getAddressWhitelistedKey(address: String) = {
+    address
+}
+
+func getAddressWhitelisted(address: String) = {
+    tryGetBoolean(getAddressWhitelistedKey(address))
+}
+
+func getIsOverKey() = {
+    "isOver"
+}
+
+func getIsOver() = {
+    tryGetBoolean(getIsOverKey())
+}
+
+@Callable(i)
+func stop() = {
+    if (i.caller.bytes != adminAddress) then throw("Admin only")
+    else {
+        [
+            BooleanEntry(getIsOverKey(), true)
+        ]
+    }
+}
+
+@Callable(i)
+func getTicket() = {
+  let callerAddress = toBase58String(i.caller.bytes)
+  let payment = i.payments[0].value()
+
+  if (getIsOver()) then throw("Tickets distribution is over")
+  else if (payment.assetId != eggAssetId) then throw("You can attach only EGGs with the following asset id - " + eggAssetId.toBase58String())
+  else if (payment.amount != investmentAmount) then throw("Wrong EGGs amount")
+  else if (getAddressWhitelisted(callerAddress)) then throw("You already have a ticket")
+  else {
+    [
+        BooleanEntry(getAddressWhitelistedKey(callerAddress), true)
+    ]
+  }
+}
+
+@Verifier(tx)
+func verify() = sigVerify(tx.bodyBytes, tx.proofs[0], tx.senderPublicKey)

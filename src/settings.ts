@@ -1,4 +1,4 @@
-import { _MAKER_SEED, _TAKER_SEED, _IMPOSTOR_SEED } from "./seeds";
+import { _MAKER_SEED, _TAKER_SEED, _IMPOSTOR_SEED, _TOURNAMENT_ADMIN_SEED } from "./seeds";
 
 // --- COMMON ---
 export const MAKER_SEED = _MAKER_SEED;
@@ -57,3 +57,8 @@ export const RANGES = [
 ]
 
 export const FEE_PERCENT = 10;
+
+// --- TOURNAMENT ---
+export const TOURNAMENT_ADDRESS = "3MzkgzQJkWqyk6KB8xzy6KYydcC2kjFvadk";
+export const TOURNAMENT_ADMIN_SEED = _TOURNAMENT_ADMIN_SEED;
+export const TOURNAMENT_TICKETS_ADDRESS = "3N4WNtTySg6yVzp58h2dwrLtpP353yVoUco";
